@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Book — FRM Part II</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="assets/meta.js"></script>
+<script src="assets/app.js"></script>
+</head>
+<body>
+<main class="page" id="mount"></main>
+<script>
+  var bn = parseInt(FRM.qs("b"), 10) || 1;
+  FRM.nav(bn + " · " + { 1: "Market", 2: "Credit", 3: "Op Risk", 4: "Liquidity", 5: "Investment" }[bn]);
+  FRM.renderBook(bn, document.getElementById("mount"));
+</script>
+</body>
+</html>

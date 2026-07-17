@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Search — FRM Part II</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="assets/meta.js"></script>
+<script src="assets/app.js"></script>
+</head>
+<body>
+<main class="page">
+  <h1>Search every concept</h1>
+  <p class="lead">Definitions, formulas, traps, and where each idea is introduced and reused.</p>
+  <input class="search-box" id="q" type="search" placeholder="Try: expected shortfall, wrong-way risk, LCR, Vasicek, RAROC…" autofocus>
+  <div id="status" style="font-size:0.82rem;color:var(--text-faint);margin-top:0.5rem">Loading curriculum…</div>
+  <div id="results"></div>
+</main>
+<script>
+FRM.nav("Search");
+var INDEX = [];
+function strip(html) { var d = document.createElement("div"); d.innerHTML = html; return d.textContent || ""; }
+
+FRM.loadAll(function () {
+  Object.keys(FRM.readings).forEach(function (rn) {
+    var d = FRM.readings[rn], b = FRM.bookOf(parseInt(rn, 10));
+    var where = "Book " + b.n + " · R" + rn + " · " + d.title;
+    INDEX.push({ term: "Reading " + rn + ": " + d.title, def: strip(d.tagline || d.teaches || "").slice(0, 220), where: where, r: rn, kind: "chapter", extra: "" });
+    (d.concepts || []).forEach(function (c) {
+      INDEX.push({ term: strip(c.name), def: strip(c.def || ""), where: where, r: rn, kind: "concept",
+        extra: strip((c.related || []).map(function (x) { return typeof x === "object" ? x.label : x; }).join(" · ")) });
+    });
+    (d.formulas || []).forEach(function (f) {
+      INDEX.push({ term: strip(f.name), def: strip(f.math) + (f.note ? " — " + strip(f.note) : ""), where: where, r: rn, kind: "formula", extra: "" });
+    });
+    (d.misconceptions || []).forEach(function (m) {
+      INDEX.push({ term: "Trap: " + strip(m.wrong).slice(0, 90), def: strip(m.right), where: where, r: rn, kind: "trap", extra: "" });
+    });
+  });
+  var totalReadings = 0;
+  FRM.META.books.forEach(function (b) { totalReadings += b.readings.length; });
+  document.getElementById("status").textContent = INDEX.length + " searchable items across " + totalReadings + " readings.";
+  run();
+}, function (done, total) {
+  document.getElementById("status").textContent = "Loading curriculum… " + done + "/" + total;
+});
+
+function run() {
+  var q = document.getElementById("q").value.trim().toLowerCase();
+  var out = document.getElementById("results");
+  if (q.length < 2) { out.innerHTML = ""; return; }
+  var terms = q.split(/\s+/);
+  var scored = [];
+  INDEX.forEach(function (it) {
+    var hayT = it.term.toLowerCase(), hayD = (it.def + " " + it.extra).toLowerCase();
+    var score = 0;
+    var all = terms.every(function (t) {
+      if (hayT.indexOf(t) >= 0) { score += hayT.indexOf(t) === 0 ? 30 : 12; return true; }
+      if (hayD.indexOf(t) >= 0) { score += 4; return true; }
+      return false;
+    });
+    if (all) {
+      if (it.kind === "concept") score += 8;
+      if (it.kind === "chapter") score += 5;
+      scored.push({ it: it, s: score });
+    }
+  });
+  scored.sort(function (a, b) { return b.s - a.s; });
+  var h = "";
+  function mark(s) {
+    var r = s;
+    terms.forEach(function (t) { r = r.replace(new RegExp("(" + t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "ig"), "<mark>$1</mark>"); });
+    return r;
+  }
+  scored.slice(0, 40).forEach(function (x) {
+    h += '<a class="search-result" href="chapter.html?r=' + x.it.r + '">' +
+      '<div class="sr-where">' + x.it.where + " · " + x.it.kind + "</div>" +
+      '<div class="sr-term">' + mark(x.it.term) + "</div>" +
+      '<div class="sr-def">' + mark(x.it.def.slice(0, 260)) + "</div></a>";
+  });
+  out.innerHTML = h || '<p style="color:var(--text-faint)">No matches. Try a shorter fragment.</p>';
+}
+document.getElementById("q").addEventListener("input", run);
+</script>
+</body>
+</html>

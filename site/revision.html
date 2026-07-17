@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Revision Mode — FRM Part II</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="assets/meta.js"></script>
+<script src="assets/app.js"></script>
+</head>
+<body>
+<main class="page">
+  <h1>Revision mode</h1>
+  <p class="lead">No explanations. Formulas, definitions, pitfalls, relationships — maximum signal per minute.</p>
+  <div class="rev-controls" id="bookBtns"></div>
+  <div class="rev-controls" id="kindBtns"></div>
+  <div id="status" style="font-size:0.82rem;color:var(--text-faint)">Loading…</div>
+  <div id="out"></div>
+</main>
+<script>
+FRM.nav("Revision");
+var bookSel = 0; /* 0 = all */
+var kindSel = "formulas";
+var KINDS = [["formulas", "Formulas"], ["definitions", "Definitions"], ["pitfalls", "Pitfalls & traps"], ["highyield", "★★★★★ only"], ["hooks", "Memory hooks"]];
+
+var bb = document.getElementById("bookBtns");
+bb.innerHTML = '<button class="on" data-b="0">All books</button>' + FRM.META.books.map(function (b) {
+  return '<button data-b="' + b.n + '">' + b.n + " · " + b.short + "</button>";
+}).join("");
+var kb = document.getElementById("kindBtns");
+kb.innerHTML = KINDS.map(function (k, i) {
+  return '<button data-k="' + k[0] + '"' + (i === 0 ? ' class="on"' : "") + ">" + k[1] + "</button>";
+}).join("");
+bb.addEventListener("click", function (e) {
+  if (e.target.tagName !== "BUTTON") return;
+  bb.querySelectorAll("button").forEach(function (x) { x.classList.remove("on"); });
+  e.target.classList.add("on"); bookSel = parseInt(e.target.getAttribute("data-b"), 10); render();
+});
+kb.addEventListener("click", function (e) {
+  if (e.target.tagName !== "BUTTON") return;
+  kb.querySelectorAll("button").forEach(function (x) { x.classList.remove("on"); });
+  e.target.classList.add("on"); kindSel = e.target.getAttribute("data-k"); render();
+});
+
+FRM.loadAll(function () {
+  document.getElementById("status").textContent = "";
+  render();
+}, function (d, t) { document.getElementById("status").textContent = "Loading… " + d + "/" + t; });
+
+function render() {
+  var h = "";
+  FRM.META.books.forEach(function (b) {
+    if (bookSel && b.n !== bookSel) return;
+    var bh = "";
+    b.readings.forEach(function (rm) {
+      var d = FRM.readings[rm.n];
+      if (!d) return;
+      var src = '<span class="rv-src"><a href="chapter.html?r=' + rm.n + '">R' + rm.n + "</a></span>";
+      if (kindSel === "formulas") (d.formulas || []).forEach(function (f) {
+        bh += '<div class="rev-item">' + src + "<div><strong>" + f.name + ":</strong> <code>" + f.math + "</code>" + (f.note ? ' <span style="color:var(--text-faint)">— ' + f.note + "</span>" : "") + "</div></div>";
+      });
+      if (kindSel === "definitions") (d.concepts || []).forEach(function (c) {
+        bh += '<div class="rev-item">' + src + "<div><strong>" + c.name + "</strong> — " + (c.def || "") + "</div></div>";
+      });
+      if (kindSel === "pitfalls") {
+        (d.misconceptions || []).forEach(function (m) {
+          bh += '<div class="rev-item">' + src + '<div><span style="color:var(--red)">✗</span> ' + m.wrong + ' <span style="color:var(--green)">✓</span> ' + m.right + "</div></div>";
+        });
+        (d.concepts || []).forEach(function (c) {
+          if (c.pitfall) bh += '<div class="rev-item">' + src + '<div><span style="color:var(--amber)">⚠</span> <strong>' + c.name + ":</strong> " + c.pitfall + "</div></div>";
+        });
+      }
+      if (kindSel === "highyield") (d.highYield || []).forEach(function (y) {
+        if (y.stars >= 5) bh += '<div class="rev-item">' + src + "<div>" + y.what + "</div></div>";
+      });
+      if (kindSel === "hooks") (d.hooks || []).forEach(function (k) {
+        bh += '<div class="rev-item">' + src + "<div><strong>" + k.title + ":</strong> " + k.text + "</div></div>";
+      });
+    });
+    if (bh) h += '<div class="rev-block"><h2 style="color:' + b.color + '">Book ' + b.n + " · " + b.title + "</h2>" + bh + "</div>";
+  });
+  document.getElementById("out").innerHTML = h || '<p style="color:var(--text-faint)">Nothing here yet for this filter.</p>';
+}
+</script>
+</body>
+</html>

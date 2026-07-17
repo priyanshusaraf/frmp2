@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Global Mind Map — FRM Part II</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="assets/meta.js"></script>
+<script src="assets/app.js"></script>
+</head>
+<body>
+<main class="page wide">
+  <h1>Global mind map</h1>
+  <p class="lead">Every major concept and its dependencies. Drag to pan, scroll to zoom, hover to trace connections, click a node to see where it lives — then jump straight to the chapter.</p>
+  <div id="mindmap-mount"></div>
+</main>
+<script>
+FRM.nav("Mind Map");
+FRM.renderMindMap(document.getElementById("mindmap-mount"));
+</script>
+</body>
+</html>
