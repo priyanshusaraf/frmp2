@@ -1,6 +1,8 @@
 import React, { Suspense, lazy } from "react";
 import { createRoot } from "react-dom/client";
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
+import "@fontsource-variable/geist";
+import "@fontsource-variable/geist-mono";
 import "./styles/tailwind.css";
 import "./styles/style.css";
 import "./widgets/all.js";

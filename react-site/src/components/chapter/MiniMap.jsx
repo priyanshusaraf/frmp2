@@ -12,6 +12,12 @@ const CENTER_H = 66;
 const SIDE_CHARS = 22; // ~130px of 11px text per line
 const CENTER_CHARS = 21; // ~108px of 10px text per line
 
+/* Stable hover identity: a connection is keyed by reading number when it has one,
+   otherwise by its external label. */
+function connId(c) {
+  return c.r != null ? c.r : "L:" + (c.label || "");
+}
+
 /* Word-wrap onto at most two lines of ~perLine chars, ellipsizing the second. */
 function wrapTwo(s, perLine) {
   const str = (s || "").trim();
@@ -33,18 +39,25 @@ function wrapTwo(s, perLine) {
   return second ? [first, second] : [first];
 }
 
-/* One side node (from-column on the left, to-column on the right). */
-function SideNode({ r, why, x, y, side, hovered, onHover, onLeave, color }) {
+/* One side node (from-column on the left, to-column on the right).
+   A connection is NOT always a reading: `connections.from` legitimately carries
+   external prerequisites as {label, why} with no `r` (e.g. "FRM Part I"). Those
+   render as a non-clickable label node — previously they produced an empty box
+   captioned just "R". */
+function SideNode({ r, label, why, x, y, side, hovered, onHover, onLeave, color }) {
   const navigate = useNavigate();
-  const rm = readingMeta(r);
-  const lines = wrapTwo(rm ? rm.t : "", SIDE_CHARS);
+  const rm = r != null ? readingMeta(r) : null;
+  const isReading = r != null;
+  const heading = isReading ? `R${r}` : "PREREQUISITE";
+  const body = isReading ? (rm ? rm.t : "") : label || "";
+  const lines = wrapTwo(body, SIDE_CHARS);
   return (
     <g
       transform={`translate(${x}, ${y})`}
-      onClick={() => navigate(rpath(r))}
-      onMouseEnter={() => onHover(side, r)}
+      onClick={isReading ? () => navigate(rpath(r)) : undefined}
+      onMouseEnter={() => onHover(side, r != null ? r : label)}
       onMouseLeave={onLeave}
-      style={{ cursor: "pointer" }}
+      style={{ cursor: isReading ? "pointer" : "default" }}
     >
       <title>{why || ""}</title>
       <rect
@@ -54,17 +67,19 @@ function SideNode({ r, why, x, y, side, hovered, onHover, onLeave, color }) {
         height={NODE_H}
         rx={8}
         fill="var(--bg-raised)"
-        stroke={color}
-        strokeWidth={hovered ? 2 : 1.2}
+        stroke={isReading ? color : "var(--border-strong)"}
+        strokeWidth={hovered && isReading ? 2 : 1.2}
+        strokeDasharray={isReading ? undefined : "4 3"}
       />
       <text
         x={10}
         y={-11}
         fontFamily="var(--mono, monospace)"
-        fontSize="10.5"
-        fill={color}
+        fontSize={isReading ? "10.5" : "8"}
+        letterSpacing={isReading ? undefined : "0.08em"}
+        fill={isReading ? color : "var(--text-faint)"}
       >
-        R{r}
+        {heading}
       </text>
       {lines.map((ln, i) => (
         <text key={i} x={10} y={5 + i * 14} fontSize="11" fill="var(--text)">
@@ -115,7 +130,11 @@ export default function MiniMap({ rn }) {
       <svg
         viewBox={`0 0 ${width} ${height}`}
         width="100%"
-        style={{ display: "block", overflow: "visible" }}
+        /* Cap at the design width: the viewBox is authored at 480px and letting it
+           stretch to the full ~860px column scaled every node ~1.8x, which is why
+           the map rendered as oversized slabs. `overflow: hidden` keeps the edge
+           curves from bleeding out under the sticky nav. */
+        style={{ display: "block", overflow: "hidden", maxWidth: width, margin: "0 auto" }}
       >
         <defs>
           <marker
@@ -179,14 +198,15 @@ export default function MiniMap({ rn }) {
           <SideNode
             key={"nf" + i}
             r={f.r}
+            label={f.label}
             why={f.why}
             x={leftX}
             y={colY(from.length, i)}
             side="from"
-            hovered={hover && hover.side === "from" && hover.r === f.r}
-            onHover={(side, r) => setHover({ side, r })}
+            hovered={hover && hover.side === "from" && hover.id === connId(f)}
+            onHover={(side) => setHover({ side, id: connId(f) })}
             onLeave={() => setHover(null)}
-            color={bookOf(f.r) ? bookOf(f.r).color : "var(--accent)"}
+            color={f.r != null && bookOf(f.r) ? bookOf(f.r).color : "var(--accent)"}
           />
         ))}
 
@@ -195,14 +215,15 @@ export default function MiniMap({ rn }) {
           <SideNode
             key={"nt" + i}
             r={t.r}
+            label={t.label}
             why={t.why}
             x={rightX}
             y={colY(to.length, i)}
             side="to"
-            hovered={hover && hover.side === "to" && hover.r === t.r}
-            onHover={(side, r) => setHover({ side, r })}
+            hovered={hover && hover.side === "to" && hover.id === connId(t)}
+            onHover={(side) => setHover({ side, id: connId(t) })}
             onLeave={() => setHover(null)}
-            color={bookOf(t.r) ? bookOf(t.r).color : "var(--accent)"}
+            color={t.r != null && bookOf(t.r) ? bookOf(t.r).color : "var(--accent)"}
           />
         ))}
 

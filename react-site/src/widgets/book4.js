@@ -49,6 +49,17 @@ register("spiral", function (el) {
   var lg2 = svgEl("text", { x: 188, y: 24, "font-size": 11.5, fill: "var(--text-dim)" }, svg);
   lg2.textContent = "Funding liquidity";
 
+  /* Node label boxes are 152x48 centred on pos(). Edges are drawn centre-to-centre
+     geometrically, then CLIPPED to the outside of both boxes — otherwise every
+     arrowhead lands in the middle of the target box, on top of its label. The
+     clipped curve is emitted as a dense polyline so the marker still orients to
+     the true tangent at the (new) endpoint. */
+  var BOX_HW = 76 + 9, BOX_HH = 24 + 9; // half-size plus breathing gap
+
+  function outsideBox(p, c) {
+    return Math.abs(p.x - c.x) > BOX_HW || Math.abs(p.y - c.y) > BOX_HH;
+  }
+
   /* edges (curved, arrowed, drawn first so nodes sit on top) */
   var edgeEls = [];
   for (var i = 0; i < nodes.length; i++) {
@@ -58,9 +69,22 @@ register("spiral", function (el) {
     var nlen = Math.sqrt(dx * dx + dy * dy) || 1;
     var bow = 28;
     var qx = mx + (-dy / nlen) * bow, qy = my + (dx / nlen) * bow;
+
+    var pts = [];
+    for (var s = 0; s <= 64; s++) {
+      var t = s / 64, u = 1 - t;
+      var p = { x: u * u * a.x + 2 * u * t * qx + t * t * b.x,
+                y: u * u * a.y + 2 * u * t * qy + t * t * b.y };
+      if (outsideBox(p, a) && outsideBox(p, b)) pts.push(p);
+    }
+    if (pts.length < 2) continue;
+
+    var d = "M" + pts[0].x.toFixed(1) + "," + pts[0].y.toFixed(1);
+    for (var k = 1; k < pts.length; k++) d += " L" + pts[k].x.toFixed(1) + "," + pts[k].y.toFixed(1);
+
     var path = svgEl("path", {
-      d: "M" + a.x + "," + a.y + " Q" + qx + "," + qy + " " + b.x + "," + b.y,
-      fill: "none", stroke: "var(--text-dim)", "stroke-width": 2,
+      d: d,
+      fill: "none", stroke: "var(--text-dim)", "stroke-width": 2, "stroke-linecap": "round",
       "marker-end": "url(#spiral-arrow-cold)", opacity: 0.75
     }, svg);
     edgeEls.push(path);

@@ -1,15 +1,18 @@
 /* FRM Part II — Interactive Curriculum. Design system: dark-first, readable, calm. */
 
 :root {
-  --bg: #0e1015;
-  --bg-raised: #151821;
-  --bg-hover: #1b1f2b;
-  --bg-inset: #0a0c10;
-  --border: #262b3a;
-  --border-strong: #343b52;
-  --text: #dde2ee;
-  --text-dim: #98a0b5;
-  --text-faint: #6b7288;
+  /* Dark theme is deliberately NEUTRAL: equal R/G/B in every chrome color, so the
+     UI reads as true grey rather than the blue-tinted "dashboard" look. Hue lives
+     only in the semantic accents below, which carry book identity. */
+  --bg: #0a0a0a;
+  --bg-raised: #121212;
+  --bg-hover: #1c1c1c;
+  --bg-inset: #050505;
+  --border: #262626;
+  --border-strong: #3d3d3d;
+  --text: #ededed;
+  --text-dim: #a1a1a1;
+  --text-faint: #6e6e6e;
   --accent: #6c9dff;
   --accent-soft: rgba(108, 157, 255, 0.12);
   --green: #4ecf8e;
@@ -26,21 +29,24 @@
   --pink-soft: rgba(239, 139, 189, 0.12);
   --radius: 10px;
   --radius-sm: 6px;
-  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
-  --mono: "SF Mono", ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+  --font: "Geist Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --mono: "Geist Mono Variable", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  /* Alias: ~20 components were written against --font-mono, which never existed
+     and silently fell back to the browser's default monospace. */
+  --font-mono: var(--mono);
   --maxw: 860px;
-  --shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  --shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
 }
 :root[data-theme="light"] {
-  --bg: #f7f8fa;
+  --bg: #fafafa;
   --bg-raised: #ffffff;
-  --bg-hover: #eef0f5;
-  --bg-inset: #eceef3;
-  --border: #dfe3ec;
-  --border-strong: #c8cedd;
-  --text: #1c2130;
-  --text-dim: #555e75;
-  --text-faint: #8b93a9;
+  --bg-hover: #f0f0f0;
+  --bg-inset: #f0f0f0;
+  --border: #e4e4e4;
+  --border-strong: #cccccc;
+  --text: #171717;
+  --text-dim: #5c5c5c;
+  --text-faint: #8f8f8f;
   --accent: #2f6bdb;
   --accent-soft: rgba(47, 107, 219, 0.09);
   --green: #1f9e63;
@@ -60,6 +66,28 @@
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
+
+/* Tailwind preflight is OFF, so form controls keep the user-agent defaults —
+   most importantly `background-color: ButtonFace`, which is a light grey the
+   browser does NOT re-derive from our theme. That is why every unstyled
+   <button> (quiz options, mock-exam options) rendered as a white slab in dark
+   mode. Neutralize the UA defaults here; components opt back in via classes. */
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: 100%;
+  color: inherit;
+}
+button {
+  background-color: transparent;
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+:where(button, [role="button"]):not(:disabled) { cursor: pointer; }
+:where(button):focus-visible, :where(a):focus-visible, :where([tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 body {
   margin: 0;
   background: var(--bg);
@@ -349,12 +377,18 @@ a.chip:hover { border-color: var(--accent); color: var(--accent); text-decoratio
   border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-raised);
   padding: 1rem 1.2rem; margin: 1.1rem 0;
 }
-.widget .w-title { font-size: 0.78rem; font-weight: 750; text-transform: uppercase; letter-spacing: 0.08em; color: var(--purple); margin-bottom: 0.5rem; }
+.widget .w-title { font-size: 0.9rem; font-weight: 600; letter-spacing: -0.01em; color: var(--text); margin-bottom: 0.5rem; }
 .widget .w-caption { font-size: 0.85rem; color: var(--text-dim); margin-top: 0.5rem; }
 .widget .w-controls { display: flex; flex-wrap: wrap; gap: 1.2rem; align-items: center; margin: 0.6rem 0; font-size: 0.85rem; }
 .widget .w-controls label { display: flex; align-items: center; gap: 0.5rem; color: var(--text-dim); }
 .widget input[type="range"] { accent-color: var(--accent); width: 160px; }
 .widget .w-value { font-family: var(--mono); font-size: 0.85rem; color: var(--accent); min-width: 4.5em; }
+/* [data-out] is the narrative step readout, not a number: it is prose and must
+   set in the app font on its own line, or it reads as terminal output. */
+.widget .w-value[data-out] {
+  font-family: var(--font); color: var(--text-dim); min-width: 0;
+  flex-basis: 100%; line-height: 1.55;
+}
 .widget svg { display: block; max-width: 100%; height: auto; }
 .widget .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 7px; overflow: hidden; }
 .widget .seg button {
@@ -441,8 +475,11 @@ svg .axis line, svg .axis path { stroke: var(--border-strong); }
 .mm-info b a { font-size: 0.95rem; }
 
 /* ---------- Chapter in-page table of contents (wide viewports only) ---------- */
+/* Docks only at >=1400px, matching .key-points. The content column is 860px, so a
+   220px rail plus gutters needs ~1366px before it stops overlapping body text —
+   at the old 1100px breakpoint the TOC sat on top of the prose. */
 .chapter-toc { display: none; }
-@media (min-width: 1100px) {
+@media (min-width: 1400px) {
   .chapter-toc {
     display: block; position: fixed; top: 50%; right: 1.1rem; transform: translateY(-50%);
     max-width: 220px; max-height: 66vh; overflow-y: auto;

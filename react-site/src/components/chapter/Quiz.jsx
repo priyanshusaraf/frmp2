@@ -143,10 +143,25 @@ export default function Quiz({ rn, quiz }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [round, picks]);
 
+  /* The status bar is fixed to the viewport, so it must only exist while the quiz
+     itself is on screen — otherwise it hovers over the intuition sections, the
+     mind map and the page footer, which it did on every chapter. */
+  const rootRef = useRef(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver((entries) => setInView(entries[0].isIntersecting), {
+      rootMargin: "-10% 0px -10% 0px",
+    });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   if (!quiz || !quiz.length) return null;
 
   return (
-    <div className="pb-16">
+    <div className="pb-16" ref={rootRef}>
       <div className="flex flex-col gap-3">
         {round.map((item, i) => {
           const picked = picks[i];
@@ -218,8 +233,19 @@ export default function Quiz({ rn, quiz }) {
         })}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 z-20 flex justify-center pointer-events-none">
-        <div className="pointer-events-auto flex items-center gap-3 bg-raised border border-line rounded-card shadow-card px-4 py-2 my-3">
+      <div
+        className={
+          "fixed bottom-0 left-0 right-0 z-20 flex justify-center pointer-events-none transition-opacity duration-200 " +
+          (inView ? "opacity-100" : "opacity-0")
+        }
+        aria-hidden={!inView}
+      >
+        <div
+          className={
+            (inView ? "pointer-events-auto " : "pointer-events-none ") +
+            "flex items-center gap-3 bg-raised border border-line rounded-card shadow-card px-4 py-2 my-3"
+          }
+        >
           <span className="text-[0.8rem] text-dim font-mono">
             answered {answeredCount}/{total}
           </span>
