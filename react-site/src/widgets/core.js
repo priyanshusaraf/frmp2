@@ -349,9 +349,11 @@ register("tranche", function (el) {
     var d = "";
     grid.forEach(function (g) { d += (d ? " L" : "M") + X(g.L) + "," + Y(g.d); });
     svgEl("path", { d: d, fill: "none", stroke: "var(--accent)", "stroke-width": 2.2 }, svg);
-    var labels = [["equity 0–5%", 0.025, "var(--red)"], ["mezzanine 5–15%", 0.10, "var(--amber)"], ["senior 15%+", 0.27, "var(--green)"]];
+    /* equity/mezz band centers sit only ~40px apart at this scale, too close for
+       full labels on one row without overlapping — stagger onto two rows instead. */
+    var labels = [["equity 0–5%", 0.025, "var(--red)", 16], ["mezzanine 5–15%", 0.10, "var(--amber)", 30], ["senior 15%+", 0.27, "var(--green)", 16]];
     labels.forEach(function (l) {
-      var t = svgEl("text", { x: X(l[1]), y: y0 + 16, "text-anchor": "middle", "font-size": 11, fill: l[2] }, svg);
+      var t = svgEl("text", { x: X(l[1]), y: y0 + l[3], "text-anchor": "middle", "font-size": 11, fill: l[2] }, svg);
       t.textContent = l[0];
     });
     /* P(senior hit) */

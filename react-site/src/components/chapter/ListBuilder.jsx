@@ -2,6 +2,18 @@ import { useMemo, useState } from "react";
 import Html from "../Html.jsx";
 import Button from "../ui/button.jsx";
 
+/* Some list items are authored with their canonical numbered name up front
+   ("Tier 1: ...", "Pillar 2: ...", "Step 3: ...") because that name is real
+   exam content. Shown as-is, the digit hands the ordering answer to the
+   student for free. Strip it from the pool/unchecked view; reveal the full
+   original text (numbered name included) once the round is checked, so the
+   naming is still taught, just not usable as a shortcut mid-drill. */
+const LEADING_ORDINAL = /^(tier|step|phase|level|line|pillar|stage)\s*\d+\s*[:.,)]?\s*/i;
+function hideOrdinal(html) {
+  const stripped = html.replace(LEADING_ORDINAL, "");
+  return stripped || html;
+}
+
 function shuffle(arr) {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {
@@ -79,7 +91,7 @@ function OneList({ list, color }) {
                 {pos + 1}
               </span>
               {idx !== undefined ? (
-                <Html as="span" html={list.items[idx]} />
+                <Html as="span" html={checked ? list.items[idx] : hideOrdinal(list.items[idx])} />
               ) : (
                 <span style={{ color: "var(--text-faint)" }}>empty</span>
               )}
@@ -97,7 +109,7 @@ function OneList({ list, color }) {
               style={{ cursor: "pointer", border: "1px solid " + color, color }}
               onClick={() => pick(idx)}
             >
-              <Html as="span" html={list.items[idx]} />
+              <Html as="span" html={hideOrdinal(list.items[idx])} />
             </button>
           ))}
         </div>
