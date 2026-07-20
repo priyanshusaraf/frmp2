@@ -19,6 +19,7 @@ import Badge from "../components/ui/badge.jsx";
 import { useStore, toggleDone, touchVisited, setPageWidth, getState } from "../lib/store.js";
 import KeyPoints from "../components/chapter/KeyPoints.jsx";
 import Resizable from "../components/chapter/Resizable.jsx";
+import { useEdgeResize } from "../lib/useEdgeResize.js";
 
 /* flat reading order across all books, for prev/next nav */
 const FLAT = META.books.flatMap((b) => b.readings.map((r) => r.n));
@@ -27,13 +28,16 @@ export default function Chapter() {
   const { rn: rnParam } = useParams();
   const rn = parseInt(rnParam, 10);
   const rootRef = useRef(null);
-  const handleRef = useRef(null);
   const resumeRef = useRef({ y: 0, scrollTo: null });
   const [openRecall, setOpenRecall] = useState({});
-  const [dragWidth, setDragWidth] = useState(null);
   const isDone = useStore((s) => !!s.done[rn]);
   const quizScore = useStore((s) => s.quiz[rn]);
   const pageWidth = useStore((s) => (s.layout && s.layout.pageWidth) || null);
+  const { width: dragWidth, onPointerDown: onResizeDown, onDoubleClick: onResizeReset } = useEdgeResize({
+    targetRef: rootRef, min: 720, factor: 2,
+    onCommit: (px) => setPageWidth(px),
+    onReset: () => setPageWidth(null),
+  });
   const appliedWidth = dragWidth ?? pageWidth;
 
   const meta = rn ? readingMeta(rn) : null;
@@ -55,46 +59,6 @@ export default function Chapter() {
     setOpenRecall({});
     if (rn) touchVisited(rn);
   }, [rn]);
-
-  function onResizeDown(e) {
-    /* Capture the DOM node + pointerId into locals NOW: React nulls out
-       e.currentTarget after this handler returns, so the async onMove/onUp
-       closures must never read e.currentTarget (doing so threw in onUp before
-       the move listener was removed → the drag never released). Listen on
-       window so a fast drag that leaves the 14px handle still tracks/ends. */
-    e.preventDefault();
-    const el = e.currentTarget;
-    const pointerId = e.pointerId;
-    const startX = e.clientX;
-    const startW = rootRef.current.getBoundingClientRect().width;
-    let lastW = startW;
-    try { el.setPointerCapture(pointerId); } catch { /* capture unsupported — window listeners still work */ }
-    el.classList.add("dragging");
-
-    function onMove(ev) {
-      let w = startW + 2 * (ev.clientX - startX);
-      w = Math.max(720, Math.min(window.innerWidth - 32, w));
-      lastW = w;
-      setDragWidth(w);
-    }
-    function end() {
-      el.classList.remove("dragging");
-      try { el.releasePointerCapture(pointerId); } catch { /* no-op */ }
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerup", end);
-      window.removeEventListener("pointercancel", end);
-      setPageWidth(lastW);
-      setDragWidth(null);
-    }
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerup", end);
-    window.addEventListener("pointercancel", end);
-  }
-
-  function onResizeReset() {
-    setPageWidth(null);
-    setDragWidth(null);
-  }
 
   /* [ / ] keyboard nav between readings (skipped while typing) */
   const navigate = useNavigate();
@@ -203,7 +167,6 @@ export default function Chapter() {
     <main className="page" ref={rootRef} style={appliedWidth ? { maxWidth: appliedWidth } : undefined}>
       <div
         className="page-resize"
-        ref={handleRef}
         onPointerDown={onResizeDown}
         onDoubleClick={onResizeReset}
         title="Drag to resize · double-click to reset"

@@ -330,6 +330,42 @@ Start with r63 as the reference example so the user can approve the depth/tone b
 full fleet runs. Scope note: this is large; it is P1 (after the P0 phone fixes), and can run in
 parallel waves across sessions — track completion per-file in PROGRESS.md.
 
+## 6c. P2 FEATURE — progressive balance-sheet visual (user directive 2026-07-20)
+
+The user hit a wall on r63's `eli5`: a huge text blob narrating a balance sheet (leverage /
+short-sale mechanics) is "horrible" to parse. Directive: **anywhere the content reasons over a
+balance sheet, show a step-by-step B/S visual that builds up line by line as the story
+progresses**, instead of a wall of text. Applies to many readings (leverage, liquidity, capital,
+securitization, repo).
+
+**Design sketch (Fable should refine):** a `balance-sheet` widget (register in `src/widgets/`)
+driven by a small per-reading data structure of ordered "steps", each step adding/annotating
+Assets vs. (Liabilities + Equity) rows, with a Next/Back (or scroll-synced) control and a one-line
+caption per step. Plain SVG/HTML + CSS, theme-aware, phone-friendly (stacks vertically on narrow).
+The reading references it via a `visual`/inline widget the way other widgets work. Content for the
+steps is DERIVED from the existing narrative (no invented numbers; r63 already gives the $100/$100,
+$150/$50, 1.5 vs 2.0 figures). This pairs with the §6b content pass: when an agent finds a
+balance-sheet text blob, it should propose replacing it with steps for this widget rather than
+prose. Effort M (one widget + a per-reading step schema); start with r63 as the exemplar.
+
+## 6d. Follow-up UX fixes shipped 2026-07-20 (after first phone test)
+
+- [x] **Resize still "stuck to cursor" after releasing** — the earlier `window`-listener fix was
+      not enough on a touchpad (a `pointerup` could be missed). Root fix in the now-shared
+      `lib/useEdgeResize.js`: a `ev.buttons === 0` guard inside pointermove ends the drag the
+      instant no button is pressed, dropped `setPointerCapture` (a likely cause of the missed
+      release), added `blur`/`pointercancel` enders and `user-select:none` during drag. The page
+      resizer was refactored to use this same hook (one code path, one fix).
+- [x] **Tile resize handle was a blue bar grabbing attention on tile hover** — removed the
+      `::before` bar entirely; the block handle is now an invisible 12px edge strip that only
+      changes the CURSOR to ew-resize, and only on the card's actual right edge.
+- [x] **Breakdown boxes went ragged/uneven** — `.breakdown-grid` was `align-items:start`; set to
+      `stretch` so each row's cards are equal height (homogeneous, like the original grid). Do not
+      revert.
+- [x] **Highlight toolbar popped in full on every selection (annoying while reading)** — the
+      selection affordance is now a small `⋯` (`.hl-more`) that expands into the color bar + "Read
+      in source" only on click (`expanded` state in `Highlighter.jsx`, reset per selection).
+
 ## 7. Execution strategy & house rules (do not skip)
 
 - **Fix order:** §1 → §2 → §3 (P0) → commit a working mobile build → §4 → §5 → §6.

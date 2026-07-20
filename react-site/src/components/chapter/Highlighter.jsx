@@ -23,7 +23,8 @@ export default function Highlighter({ rn, book, containerRef }) {
   const hlLabelState = useStore((s) => s.hlLabels);
   const labels = hlLabels({ hlLabels: hlLabelState });
 
-  const [toolbar, setToolbar] = useState(null); // { x, y }
+  const [toolbar, setToolbar] = useState(null); // { x, y, editId }
+  const [expanded, setExpanded] = useState(false); // toolbar starts as an unobtrusive ⋯; expands on click
   const [popover, setPopover] = useState(null); // { id, x, y, h }
   const [noteDraft, setNoteDraft] = useState("");
   const [noteSaved, setNoteSaved] = useState(false);
@@ -67,6 +68,7 @@ export default function Highlighter({ rn, book, containerRef }) {
         }
       } catch { editId = null; }
       setPopover(null);
+      setExpanded(false); // every new selection starts collapsed as a ⋯, never the full bar
       setToolbar({
         x: rect.left + window.scrollX + rect.width / 2,
         y: rect.bottom + window.scrollY + 8,
@@ -174,7 +176,22 @@ export default function Highlighter({ rn, book, containerRef }) {
 
   return createPortal(
     <>
-      {toolbar && (
+      {toolbar && !expanded && (
+        <div className="hl-toolbar hl-mini" style={{ left: toolbar.x, top: toolbar.y }}>
+          <button
+            type="button"
+            className="hl-more"
+            title="Highlight options"
+            aria-label="Highlight options"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => setExpanded(true)}
+          >
+            ⋯
+          </button>
+        </div>
+      )}
+
+      {toolbar && expanded && (
         <div className="hl-toolbar" style={{ left: toolbar.x, top: toolbar.y }}>
           {HL_COLORS.map((c) => (
             <button

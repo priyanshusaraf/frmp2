@@ -185,20 +185,20 @@ tr:nth-child(even) td { background: color-mix(in srgb, var(--bg-raised) 60%, var
 
 /* ---- per-list resizable blocks (local resizers; global page resizer is separate) ---- */
 .resizable { position: relative; }
-/* breakdown "At a glance" cards: flex-wrap so a widened card reflows the others */
-.breakdown-grid { display: flex; flex-wrap: wrap; gap: 1rem; align-items: start; }
-.breakdown-grid > .resizable { flex: 1 1 calc(50% - 0.5rem); min-width: 260px; }
+/* breakdown "At a glance" cards: flex-wrap so a widened card reflows the others, but
+   align-items: stretch keeps each row's cards the SAME height — homogeneous, like the
+   original grid. Never revert to align-items:start (that left ragged, uneven boxes). */
+.breakdown-grid { display: flex; flex-wrap: wrap; gap: 1rem; align-items: stretch; }
+.breakdown-grid > .resizable { flex: 1 1 calc(50% - 0.5rem); min-width: 280px; }
 .block-resize { display: none; }
 @media (min-width: 1100px) {
+  /* Invisible edge strip: ONLY the resize cursor appears, and only when the pointer is
+     literally on the card's right edge. No colored bar, nothing on plain tile hover —
+     the accent bar was grabbing attention and hurting the eye. */
   .block-resize {
-    display: block; position: absolute; top: 0; right: -7px; width: 12px; height: 100%;
+    display: block; position: absolute; top: 0; right: -6px; width: 12px; height: 100%;
     cursor: ew-resize; z-index: 6; touch-action: none;
   }
-  .block-resize::before {
-    content: ""; position: absolute; top: 10px; bottom: 10px; left: 5px; width: 2px; border-radius: 2px;
-    background: var(--border); opacity: 0; transition: opacity 0.15s, background 0.15s;
-  }
-  .resizable:hover .block-resize::before, .block-resize.dragging::before { opacity: 1; background: var(--accent); }
 }
 
 /* ---------- Section blocks in chapters ---------- */
@@ -645,6 +645,11 @@ mark.hl.hl-r { background: color-mix(in srgb, var(--red) 26%, transparent); box-
 .hl-swatch.sw-y { background: var(--amber); } .hl-swatch.sw-g { background: var(--green); }
 .hl-swatch.sw-b { background: var(--accent); } .hl-swatch.sw-r { background: var(--red); }
 .hl-swatch:hover { transform: scale(1.15); }
+/* collapsed selection affordance: a small ⋯ that expands into the full color bar,
+   so simply selecting text while reading isn't interrupted by the whole toolbar */
+.hl-toolbar.hl-mini { padding: 0.1rem 0.15rem; }
+.hl-more { font-size: 1.05rem; line-height: 1; color: var(--text-dim); padding: 0.15rem 0.55rem; letter-spacing: 0.05em; border-radius: var(--radius-sm); }
+.hl-more:hover { color: var(--text); background: var(--bg-hover); }
 
 /* ---- "Key points to remember" — list markup, now hosted inside a .rail-panel ---- */
 .key-points ul { list-style: none; margin: 0; padding: 0; }
