@@ -4,12 +4,17 @@ Single source of truth for **where development stands**, so work can resume even
 session dies or limits run out. Scope of all work: **`react-site/` only** — the vanilla
 `site/` app is frozen. Full design: `docs/superpowers/specs/2026-07-18-react-marketable-design.md`.
 
-> **⏭ ACTIVE RESUME POINT (2026-07-20, mid eighth session):** open work — two P0 bugs (resize
-> handle never releases; mobile viewport horizontal overflow), full mobile responsive audit
-> (user needs this on their PHONE by 2026-07-21), local per-list resizers, then the Flashcards
-> card-engine + digestibility mechanics (Fable-designed). **Full plan, root causes, exact fixes,
-> and Fable's memo are in `react-site/docs/superpowers/specs/2026-07-20-comfort-ui-v2-plan.md` —
-> READ THAT FIRST.** Nothing since the seventh session is committed yet.
+> **⏭ ACTIVE RESUME POINT (2026-07-21, ninth session):** comfort-ui-mobile-fixes branch
+> (resize/mobile P0 fixes + local per-list resizers + book 1-2 content refinements) is merged
+> to `main` and pushed. This session then shipped a Fable-designed memorization batch (spec:
+> `react-site/docs/superpowers/specs/2026-07-20-memorization-design.md`) — see the shipped
+> section below — and wrote a **not-yet-built roadmap** for a cross-reading "core concept"
+> hover/deep-dive system (Vasicek WCDR etc.) into `react-site/CLAUDE.md` section 6. That
+> roadmap is spec-only; next session should brainstorm→plan→build it as its own scoped
+> project, starting with Phase 1 (see CLAUDE.md section 6), NOT resume mid-build.
+> **Known debt, not blocking:** the em-dash/prose-tone cleanup is still incomplete across
+> several Book 3 readings (r40-r43, r50-r51 fail the validator's dash budget; pre-existing,
+> confirmed not introduced this session) — a future tone-pass should sweep book3 fully.
 
 Update the checkboxes as items land. Last updated: **2026-07-20 (seventh session — comfort-UI
 batch: floating-pill Key points + On-this-page rails, draggable reading width, exact-position

@@ -239,3 +239,68 @@ collide); the orchestrating session builds, import-sweeps, render-checks, and fi
 all agents land. Reuse the enrichment workflow script referenced in `../PROGRESS.md` for
 content passes. Update `../PROGRESS.md` (and the feature table) before ending the session —
 it is the only memory the next session is guaranteed to have.
+
+**Never run `git stash`, `git reset`, or any other repo-wide git state change from inside a
+fan-out agent.** Agents share one working tree with the orchestrator and with each other; a
+stash/pop on a dirty tree can silently drop or reorder another agent's or the orchestrator's
+uncommitted edits (this happened on 2026-07-21 — a content agent's stash/pop wiped four
+infra files the orchestrator had just written, recovered only because the orchestrator still
+had the edits in its own context and could redo them). Agents touch only their assigned
+files with Edit/Write; if a file-scoped edit needs a clean baseline, re-read the file, don't
+stash.
+
+## 6. Roadmap: cross-reading core-concept system (NOT YET BUILT — spec only)
+
+Requested 2026-07-21: reused, theory-dense models (the motivating example: Vasicek WCDR,
+which is defined once in R21 and then referenced by name across R8/R11/R12/R13/R14/R26/R27/
+R29/R59) currently get re-explained thin or not at all when they resurface in a later
+reading. The ask is a Wikipedia-style cross-reference system: hover a model's name anywhere
+it's reused → short snippet pops up → "Learn more" opens a dedicated, deeper-than-the-book
+explanation page → a "Back to reading" button returns to wherever you came from (shown only
+if you arrived from an actual reading, not from a concepts index). This is a multi-phase,
+usage-intensive build — do NOT implement it opportunistically inside an unrelated session;
+treat it as its own scoped project. Decisions already made with the user (do not re-litigate
+without asking):
+
+- **Which models qualify — automatic, not curated.** Any name that appears in `formulas[]`
+  or `concepts[]` across 2+ readings (normalized match) is auto-promoted to a "core concept."
+  No manual registry to maintain.
+- **Depth beyond the book is allowed.** Core-concept pages MAY include general finance
+  knowledge not present in the Schweser source (unlike every other content field in this
+  app) — but it MUST be clearly labeled as beyond-exam-scope ("Extra depth" / "Beyond the
+  exam") so a student never mistakes outside content for something GARP will test. This is a
+  deliberate, scoped exception to the "never invent, only from Schweser" hard rule in section
+  1 — it applies ONLY to this feature's extra-depth layer, nowhere else.
+- **Piecewise formula breakdown wanted.** For a formula like WCDR, every symbol needs its own
+  explained row (what it is, why it's there, e.g. why the inverse-normal, why the √ρ), not
+  one paragraph — the R21 "Show the math" derivation is a good base to build from but isn't
+  itself piecewise.
+
+Proposed build (not yet started, no code written):
+
+1. **`src/lib/coreConcepts.js`** — scans `useAllReadings()`, builds `{ slug, name,
+   homeReading (lowest rn it appears in), refs: [rn...] }` for every formula/concept name
+   that recurs across 2+ readings.
+2. **`/concepts` index + `/concept/:slug` page** — lazy routes like other secondary pages;
+   the deep-dive page renders the home reading's existing formula/concept content as the
+   base layer, plus a new optional authored layer (`formulas[].terms: [{symbol, meaning,
+   why}]` for the piecewise breakdown, `formulas[].deepDive` HTML for the extra-depth
+   section, visually separated and labeled per the rule above).
+3. **Inline reference + hover snippet** — later readings that reuse a core-concept name get
+   it wrapped (auto-detected, not manually authored, same keyword-match style as
+   `lib/related.js`) in a small component rendering a dotted-underline term; hover (desktop)
+   or tap (mobile — hover doesn't exist on touch, needs a tap-to-open fallback) shows a short
+   auto-generated snippet via a Radix HoverCard/Popover, with a "Learn more →" link to
+   `/concept/:slug`.
+4. **Back-to-reading button** — navigate to the concept page with router `state: {
+   fromReading: rn }` (same convention as the existing `state.resume`/`state.scrollTo` on
+   Chapter.jsx); the concept page shows "← Back to Reading {rn}" only when that state key is
+   present, so arriving via `/concepts` or a bare link shows no button.
+
+Sequencing, because this touches every reading that reuses any core concept (a large
+fan-out): **Phase 1** — auto-detection lib + `/concepts` index + basic `/concept/:slug` page
+(book-layer content only) + back-to-reading button, no hover snippets yet, no extra-depth
+content yet. **Phase 2** — piecewise `terms[]` breakdown + first authored `deepDive` content,
+piloted on Vasicek WCDR only. **Phase 3** — the inline hover-snippet linking pass across all
+readings that reference an established core concept (the expensive phase; do as a dedicated
+fleet run, one agent per file, following section 5's rules).
