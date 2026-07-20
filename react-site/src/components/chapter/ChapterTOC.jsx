@@ -1,16 +1,24 @@
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { esc } from "../../lib/html.js";
+import { useStore, setTocOpen } from "../../lib/store.js";
+
+const EMPTY = [];
 
 /* Sticky in-page table of contents, ported from the original buildTOC/teardownTOC.
    Rendered via a portal onto document.body (the original nav is position:fixed and
-   appended directly to <body>, outside the page mount). */
-export default function ChapterTOC({ sections }) {
+   appended directly to <body>, outside the page mount). Collapsed by default into a
+   small chevron tab hugging the right edge (mid-height, iOS-style), so it never sits on
+   top of the bottom-right notes button; expands into a floating panel on click. */
+export default function ChapterTOC({ sections, rn }) {
   const navRef = useRef(null);
   const activeRef = useRef(null);
+  const open = useStore((s) => (s.layout && s.layout.tocOpen) || false);
+  const bms = useStore((s) => (s.bookmarks && s.bookmarks[rn]) || EMPTY);
+  const bmIds = new Set(bms.map((b) => b.id));
 
   useEffect(() => {
-    if (!sections || !sections.length) return;
+    if (!open || !sections || !sections.length) return;
     const nav = navRef.current;
     if (!nav) return;
 
@@ -49,7 +57,7 @@ export default function ChapterTOC({ sections }) {
     }
 
     return () => { if (observer) observer.disconnect(); };
-  }, [sections]);
+  }, [sections, open]);
 
   if (!sections || !sections.length) return null;
 
@@ -59,18 +67,38 @@ export default function ChapterTOC({ sections }) {
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
+  if (!open) {
+    return createPortal(
+      <button className="edge-tab right" onClick={() => setTocOpen(true)}
+              aria-label="On this page" title="On this page">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+      </button>,
+      document.body
+    );
+  }
+
   return createPortal(
-    <nav className="chapter-toc" ref={navRef}>
-      <div className="chapter-toc-title">On this page</div>
-      <ul>
-        {sections.map((s) => (
-          <li key={s.id}>
-            <a href={"#" + s.id} data-target={s.id} onClick={(e) => onClick(e, s.id)}
-               dangerouslySetInnerHTML={{ __html: esc(s.txt) }} />
-          </li>
-        ))}
-      </ul>
-    </nav>,
+    <div className="rail-panel right">
+      <div className="rail-panel-head">
+        On this page
+        <button className="rail-panel-close" onClick={() => setTocOpen(false)} aria-label="Collapse">✕</button>
+      </div>
+      <nav className="chapter-toc" ref={navRef}>
+        <ul>
+          {sections.map((s) => (
+            <li key={s.id}>
+              <a href={"#" + s.id} data-target={s.id} onClick={(e) => onClick(e, s.id)}>
+                {bmIds.has(s.id) && <span className="toc-bm">★</span>}
+                <span dangerouslySetInnerHTML={{ __html: esc(s.txt) }} />
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </div>,
     document.body
   );
 }

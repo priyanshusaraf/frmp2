@@ -28,6 +28,7 @@ const Planner = lazy(() => import("./pages/Planner.jsx"));
 const Drills = lazy(() => import("./pages/Drills.jsx"));
 const Highlights = lazy(() => import("./pages/Highlights.jsx"));
 const MockExam = lazy(() => import("./pages/MockExam.jsx"));
+const Bookmarks = lazy(() => import("./pages/Bookmarks.jsx"));
 
 function PageLoading() {
   return (
@@ -59,6 +60,7 @@ createRoot(document.getElementById("root")).render(
           <Route path="/drills" element={<Drills />} />
           <Route path="/highlights" element={<Highlights />} />
           <Route path="/mock" element={<MockExam />} />
+          <Route path="/bookmarks" element={<Bookmarks />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>

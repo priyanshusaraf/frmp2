@@ -4,7 +4,19 @@ Single source of truth for **where development stands**, so work can resume even
 session dies or limits run out. Scope of all work: **`react-site/` only** — the vanilla
 `site/` app is frozen. Full design: `docs/superpowers/specs/2026-07-18-react-marketable-design.md`.
 
-Update the checkboxes as items land. Last updated: **2026-07-19 (sixth session — see
+> **⏭ ACTIVE RESUME POINT (2026-07-20, mid eighth session):** open work — two P0 bugs (resize
+> handle never releases; mobile viewport horizontal overflow), full mobile responsive audit
+> (user needs this on their PHONE by 2026-07-21), local per-list resizers, then the Flashcards
+> card-engine + digestibility mechanics (Fable-designed). **Full plan, root causes, exact fixes,
+> and Fable's memo are in `react-site/docs/superpowers/specs/2026-07-20-comfort-ui-v2-plan.md` —
+> READ THAT FIRST.** Nothing since the seventh session is committed yet.
+
+Update the checkboxes as items land. Last updated: **2026-07-20 (seventh session — comfort-UI
+batch: floating-pill Key points + On-this-page rails, draggable reading width, exact-position
+resume, section bookmarks + /bookmarks page, highlight toggle-off fix. Foundation laid by
+orchestrator, 6 Sonnet subagents on disjoint files, build green + render-check clean. See
+"Shipped 2026-07-20" below. Interactive bits await browser verification.)** Previous:
+**2026-07-19 (sixth session — see
 "Shipped 2026-07-19 (sixth session)" below: bundle code-split 5MB→723KB, /mock exam mode,
 two missing widgets built, Revision/palette/Quiz fixes via Sonnet workflow `wf_822cbc60-ce9`,
 everything committed & pushed to GitHub.)** Previous: **2026-07-19 (fifth session — book 5
@@ -178,6 +190,42 @@ user's feature ideas verbatim + division of work; committed).
       recall cards keyboard-accessible.
 - Verification note: dist/ ES modules do NOT load over file:// (CORS) — render-check the
   react build over HTTP (`python3 -m http.server` in dist/), not file://.
+
+## Shipped 2026-07-20 (seventh session — comfort-UI batch)
+
+Spec: `react-site/docs/superpowers/specs/2026-07-20-comfort-ui-design.md`. Six reading-comfort
+changes. Orchestrator laid the shared foundation (store contract + CSS classes + route/nav
+wiring), then fanned out 6 Sonnet subagents on disjoint files. Build green, headless
+render-check of `/chapter/63` + `/` + `/bookmarks` = 0 failure markers; DOM confirms 17
+bookmark toggles, both corner pills, and the resize handle present.
+
+- [x] **Key points → floating pill** (`KeyPoints.jsx`) — bottom-LEFT `.corner-pill`; click
+      expands `.rail-panel`; collapsed by default; state in `layout.keyPointsOpen`.
+- [x] **"On this page" → floating pill** (`ChapterTOC.jsx`) — bottom-RIGHT pill/panel; keeps
+      IntersectionObserver active tracking (re-attaches on open); bookmarked sections get a ★;
+      state in `layout.tocOpen`. Now takes an `rn` prop.
+- [x] **Draggable reading width** (`Chapter.jsx` `.page-resize`) — drag right edge, width
+      changes 2×dx to stay centered, clamp [720, vw−32], double-click resets; persisted as
+      `layout.pageWidth` (applied as inline `maxWidth` on `main.page`, which is now
+      `position:relative`). Handle shown ≥1100px.
+- [x] **Exact-position resume** — `lastVisited` extended to `{rn,ts,y,section}`; Chapter saves
+      throttled scroll y + nearest section label, and restores on arrival with router
+      `state.resume` (after math/widgets settle via rAF; resume intent captured into a ref
+      BEFORE `touchVisited` resets it). Home + Book "Continue studying" cards pass
+      `state={{resume:true}}` and show "Left off in …". Also honors `state.scrollTo` (from /bookmarks).
+- [x] **Section bookmarks + `/bookmarks`** — `SectionLabel` gains optional `rn` → ☆/★
+      `.bookmark-toggle`; store `bookmarks` key (`toggleBookmark`/`isBookmarked`/`allBookmarks`);
+      new lazy `/bookmarks` page (Study menu + palette) groups bookmarks by reading, links to
+      section via `state.scrollTo`, teaching empty state.
+- [x] **Highlight toggle fix** (`Highlighter.jsx`) — (a) mark popover: clicking the active color
+      now REMOVES the highlight; (b) selection toolbar detects intersection with existing
+      `mark.hl` (`range.intersectsNode`) and enters edit mode (active color outlined; click it →
+      remove, click another → recolor) instead of silently stacking a duplicate.
+- Store additions (all optional keys, spread-prev): `layout {pageWidth,keyPointsOpen,tocOpen}`,
+  `bookmarks`, `lastVisited.{y,section}`. Selectors kept #185-safe (raw slice + useMemo; boolean
+  primitives from selectors).
+- **Needs interactive (browser) verification** — drag-resize, highlight toggle-off, bookmark
+  click, and scroll-resume can't be exercised headless. Flag for the user.
 
 ## Deferred / later
 

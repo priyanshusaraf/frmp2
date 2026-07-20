@@ -174,6 +174,15 @@ tr:nth-child(even) td { background: color-mix(in srgb, var(--bg-raised) 60%, var
 .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
 @media (max-width: 760px) { .grid2, .grid3 { grid-template-columns: 1fr; } }
 
+/* Content-box overflow hardening — a long unbroken token, inline code (globally
+   nowrap), or KaTeX display math in prose must never breach a card's padding.
+   This was breaching box margins on some readings, especially at narrow widths. */
+.prose, .card, .hy-item .hy-body, .misc-row .wrong, .misc-row .right { overflow-wrap: break-word; min-width: 0; }
+.prose code, .card code { white-space: normal; overflow-wrap: break-word; }
+.katex-display { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
+/* touch devices have no hover: keep the section bookmark toggle tappable */
+@media (hover: none) { .bookmark-toggle { opacity: 1; } }
+
 /* ---------- Section blocks in chapters ---------- */
 .section-label {
   display: flex; align-items: center; gap: 0.55rem;
@@ -474,19 +483,74 @@ svg .axis line, svg .axis path { stroke: var(--border-strong); }
 }
 .mm-info b a { font-size: 0.95rem; }
 
-/* ---------- Chapter in-page table of contents (wide viewports only) ---------- */
-/* Docks only at >=1400px, matching .key-points. The content column is 860px, so a
-   220px rail plus gutters needs ~1366px before it stops overlapping body text —
-   at the old 1100px breakpoint the TOC sat on top of the prose. */
-.chapter-toc { display: none; }
-@media (min-width: 1400px) {
-  .chapter-toc {
-    display: block; position: fixed; top: 50%; right: 1.1rem; transform: translateY(-50%);
-    max-width: 220px; max-height: 66vh; overflow-y: auto;
+/* ---------- Floating corner rails (Key points, On this page) ----------
+   Apple-style: a small collapsed pill sits in a bottom corner and expands into a
+   floating panel on click. They no longer dock as always-open side rails; the open
+   state is JS-driven and remembered (store `layout.keyPointsOpen` / `layout.tocOpen`),
+   so the reading column is free to be widened by the resize handle. Hidden below
+   1000px, where a floating panel would crowd the content. */
+.corner-pill { display: none; }
+.rail-panel { display: none; }
+.edge-tab { display: none; } /* desktop-only affordance; base-hidden so it can't leak onto mobile */
+@media (min-width: 1000px) {
+  .corner-pill {
+    display: inline-flex; align-items: center; gap: 0.4rem; position: fixed; bottom: 1.1rem;
+    z-index: 45; background: var(--bg-raised); color: var(--text-dim);
+    border: 1px solid var(--border); border-radius: 999px; box-shadow: var(--shadow);
+    padding: 0.4rem 0.7rem; font: inherit; font-size: 0.74rem; font-weight: 650;
+    cursor: pointer; transition: color 0.15s, border-color 0.15s, background 0.15s, transform 0.15s;
+  }
+  .corner-pill:hover { color: var(--text); border-color: var(--border-strong); transform: translateY(-1px); }
+  .corner-pill.left { left: 1.1rem; }
+  .corner-pill .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .corner-pill .chev { color: var(--text-faint); display: inline-flex; }
+
+  /* Right-edge chevron tab (iOS-style) for "On this page" — hugs the viewport's right
+     edge at mid-height so it never overlaps the bottom-right notes (+) button. */
+  .edge-tab {
+    display: flex; align-items: center; justify-content: center; position: fixed;
+    top: 50%; transform: translateY(-50%); right: 0; z-index: 45;
+    width: 26px; height: 46px; padding: 0;
+    background: var(--bg-raised); color: var(--text-dim);
+    border: 1px solid var(--border); border-right: none; border-radius: 11px 0 0 11px;
+    box-shadow: var(--shadow); cursor: pointer;
+    transition: color 0.15s, background 0.15s, width 0.15s;
+  }
+  .edge-tab:hover { color: var(--text); background: var(--bg-hover); width: 30px; }
+  .edge-tab svg { display: block; }
+
+  .rail-panel {
+    display: flex; flex-direction: column; position: fixed; bottom: 1.1rem; z-index: 46;
+    width: 250px; max-height: 68vh; overflow-y: auto;
     background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 0.7rem 0.65rem; box-shadow: var(--shadow); z-index: 40;
+    padding: 0.7rem 0.65rem; box-shadow: var(--shadow);
+    animation: rail-rise 0.16s ease-out;
+  }
+  .rail-panel.left { left: 1.1rem; }
+  /* the TOC panel opens from the right edge at mid-height, matching its edge tab */
+  .rail-panel.right {
+    right: 0.7rem; left: auto; top: 50%; bottom: auto; transform: translateY(-50%);
+    animation: rail-slide-right 0.18s ease-out;
   }
 }
+@keyframes rail-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes rail-slide-right {
+  from { opacity: 0; transform: translate(14px, -50%); }
+  to   { opacity: 1; transform: translate(0, -50%); }
+}
+.rail-panel-head {
+  display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.45rem;
+  font-size: 0.68rem; font-weight: 750; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-faint);
+}
+.rail-panel-head .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.rail-panel-close {
+  margin-left: auto; background: none; border: none; color: var(--text-faint); cursor: pointer;
+  font-size: 0.95rem; line-height: 1; padding: 0 0.15rem;
+}
+.rail-panel-close:hover { color: var(--text); }
+
+/* Chapter in-page TOC — inner list markup, now hosted inside a .rail-panel */
 .chapter-toc-title {
   font-size: 0.68rem; font-weight: 750; text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--text-faint); padding: 0 0.5rem; margin-bottom: 0.4rem;
@@ -494,12 +558,41 @@ svg .axis line, svg .axis path { stroke: var(--border-strong); }
 .chapter-toc ul { list-style: none; margin: 0; padding: 0; }
 .chapter-toc li { margin: 0; }
 .chapter-toc a {
-  display: block; padding: 0.3rem 0.5rem; border-radius: var(--radius-sm);
+  display: flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.5rem; border-radius: var(--radius-sm);
   font-size: 0.76rem; line-height: 1.3; color: var(--text-dim);
   border-left: 2px solid transparent;
 }
 .chapter-toc a:hover { background: var(--bg-hover); color: var(--text); text-decoration: none; }
 .chapter-toc a.active { color: var(--accent); background: var(--accent-soft); border-left-color: var(--accent); font-weight: 600; }
+.chapter-toc a .toc-bm { color: var(--amber); font-size: 0.7rem; flex: none; }
+
+/* ---------- Reading-column resize handle (wide viewports) ----------
+   A thin bar on the right edge of the centered content column; drag to widen.
+   Width change is applied by JS (store `layout.pageWidth`); double-click resets. */
+.page { position: relative; }
+.page-resize { display: none; }
+@media (min-width: 1100px) {
+  .page-resize {
+    display: block; position: absolute; top: 0; right: -14px; width: 14px; height: 100%;
+    cursor: ew-resize; z-index: 30; touch-action: none;
+  }
+  .page-resize::before {
+    content: ""; position: absolute; top: 0; bottom: 0; left: 6px; width: 2px; border-radius: 2px;
+    background: var(--border); opacity: 0; transition: opacity 0.15s, background 0.15s;
+  }
+  .page-resize:hover::before, .page-resize.dragging::before { opacity: 1; background: var(--accent); }
+}
+
+/* ---------- section-label bookmark toggle ---------- */
+.section-label { position: relative; }
+.bookmark-toggle {
+  background: none; border: none; cursor: pointer; color: var(--text-faint); padding: 0 0.25rem;
+  font-size: 0.85rem; line-height: 1; opacity: 0; transition: opacity 0.15s, color 0.15s;
+  vertical-align: middle;
+}
+.section-label:hover .bookmark-toggle, .bookmark-toggle.on, .bookmark-toggle:focus-visible { opacity: 1; }
+.bookmark-toggle:hover { color: var(--amber); }
+.bookmark-toggle.on { color: var(--amber); }
 
 /* ---------- misc ---------- */
 .footer-note { margin-top: 4rem; font-size: 0.8rem; color: var(--text-faint); border-top: 1px solid var(--border); padding-top: 1rem; }
@@ -535,23 +628,8 @@ mark.hl.hl-r { background: color-mix(in srgb, var(--red) 26%, transparent); box-
 .hl-swatch.sw-b { background: var(--accent); } .hl-swatch.sw-r { background: var(--red); }
 .hl-swatch:hover { transform: scale(1.15); }
 
-/* ---- "Key points to remember" left rail ---- */
-.key-points { display: none; }
-@media (min-width: 1400px) {
-  .key-points {
-    display: block; position: fixed; top: 50%; left: 1.1rem; transform: translateY(-50%);
-    width: 230px; max-height: 66vh; overflow-y: auto;
-    background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius);
-    box-shadow: var(--shadow); z-index: 40; padding: 0.55rem 0.65rem;
-  }
-}
-.key-points-head {
-  display: flex; align-items: center; gap: 0.45rem; width: 100%; background: none; border: none;
-  color: var(--text); font: inherit; font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.07em; cursor: pointer; padding: 0.15rem 0;
-}
-.key-points-head .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
-.key-points-caret { margin-left: auto; color: var(--text-faint); }
-.key-points ul { list-style: none; margin: 0.45rem 0 0; padding: 0; }
+/* ---- "Key points to remember" — list markup, now hosted inside a .rail-panel ---- */
+.key-points ul { list-style: none; margin: 0; padding: 0; }
 .key-points li { font-size: 0.8rem; line-height: 1.4; margin: 0 0 0.55rem; }
+.key-points li:last-child { margin-bottom: 0; }
 .key-points .kp-stars { display: block; font-size: 0.66rem; color: var(--amber); letter-spacing: 0.08em; }

@@ -90,6 +90,7 @@ export default function Home() {
       {lastRead && lastBook && (
         <Link
           to={rpath(lastVisited.rn)}
+          state={{ resume: true }}
           className="card group flex items-center justify-between gap-3 mt-4"
           style={{ borderLeft: "3px solid " + lastBook.color, textDecoration: "none" }}
         >
@@ -104,6 +105,7 @@ export default function Home() {
               {lastBook.n} · {lastBook.short}
               {lastRead.hy ? <span className="ml-2" style={{ color: "var(--amber)" }}>{"★".repeat(lastRead.hy)}</span> : null}
             </div>
+            {lastVisited.section ? <div className="text-[0.78rem] text-faint mt-0.5">Left off in “{lastVisited.section}”</div> : null}
           </div>
           <ArrowUpRight size={16} className="shrink-0 text-faint transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-accent" />
         </Link>

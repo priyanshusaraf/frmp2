@@ -46,6 +46,32 @@ The teaching doctrine, in order of priority:
    the exam", and downstream features (KeyPoints rail, planner weighting, home-page global
    high-yield list) consume them. Don't inflate stars. `summary` is one page, telegraphic,
    rereadable the morning of the exam.
+7. **Never leave the student needing to ask "why?" elsewhere.** The whole reason this app
+   exists is so the student never has to reach for another tool to understand a claim. When a
+   statement is **counterintuitive** — anything that cuts against a natural assumption — you
+   MUST supply the mechanism in the same breath, not just assert the surprising fact. Example
+   of the failure (real, from r63): *"deposits have become LESS stable over time — depositors
+   rate-shop across institutions"* states the surprise but not the WHY, so the student had to
+   ask an AI. The fix is to explain the causal chain (online banking made moving money
+   frictionless; deposit-insurance caps mean large balances flee first; competition means the
+   whole deposit market reprices at once under stress) — **sourced from Schweser, never
+   invented.** Give counterintuitive points MORE room, not less. Where students genuinely
+   struggle, a simpler, slower explanation is correct; simpler ≠ oversimplified — never drop
+   the exam-relevant nuance, just build the intuition before stating it.
+
+### Prose style — HARD RULES (apply to every user-facing content field)
+
+- **NO EM-DASHES OR EN-DASHES ANYWHERE** (`—`, `–`). They read as AI-generated and the product
+  owner has banned them outright. Rewrite with a comma, colon, parentheses, or a full stop —
+  usually a full stop or colon reads better anyway. This applies to ALL content fields
+  (`teaches`, `why`, `intuition`, `eli5`, `thinkLike`, `concepts[].*`, `breakdown[].points`,
+  `misconceptions`, `highYield`, `hooks`, `recall`, `summary`, taglines, quiz whys). A minus
+  sign in math (`a-b`) or a hyphen in a compound word (`risk-weighted`) is fine; the banned
+  characters are specifically the long dashes. Grep check before shipping any content edit:
+  `grep -Rn '—\|–' src/data/<file>` must return nothing.
+- **Human, plain tone.** Write the way a sharp tutor talks, not the way a textbook is printed.
+  The tone-humanization + em-dash removal has NOT been verified across all 101 readings yet
+  (see the content-quality workstream in `docs/superpowers/specs/2026-07-20-comfort-ui-v2-plan.md`).
 
 ### Content schema (each `src/data/bookN/rNN.js` default-exports this)
 

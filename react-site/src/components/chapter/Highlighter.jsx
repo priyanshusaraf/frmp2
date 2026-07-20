@@ -59,10 +59,18 @@ export default function Highlighter({ rn, book, containerRef }) {
       if (text.length < MIN_SEL_LEN) return;
       const rect = range.getBoundingClientRect();
       if (!rect || (!rect.width && !rect.height)) return;
+      let editId = null;
+      try {
+        const marks = root.querySelectorAll("mark.hl");
+        for (const m of marks) {
+          if (range.intersectsNode ? range.intersectsNode(m) : false) { editId = m.getAttribute("data-hl"); break; }
+        }
+      } catch { editId = null; }
       setPopover(null);
       setToolbar({
         x: rect.left + window.scrollX + rect.width / 2,
         y: rect.bottom + window.scrollY + 8,
+        editId,
       });
     }
     document.addEventListener("mouseup", onMouseUp);
@@ -104,6 +112,16 @@ export default function Highlighter({ rn, book, containerRef }) {
   }
 
   function pickColor(color) {
+    if (toolbar && toolbar.editId) {
+      const existing = highlights.find((h) => h.id === toolbar.editId);
+      const editColor = existing ? existing.color : null;
+      if (color === editColor) removeHighlight(rn, toolbar.editId);
+      else setHighlightColor(rn, toolbar.editId, color);
+      const sel = window.getSelection();
+      if (sel) sel.removeAllRanges();
+      setToolbar(null);
+      return;
+    }
     const root = containerRef && containerRef.current;
     const sel = window.getSelection();
     const cap = root ? captureSelection(root, sel) : null;
@@ -124,6 +142,7 @@ export default function Highlighter({ rn, book, containerRef }) {
 
   function recolor(color) {
     if (!popover) return;
+    if (color === popover.h.color) { removeThis(); return; }
     setHighlightColor(rn, popover.id, color);
     setPopover((p) => (p && p.id === popover.id ? { ...p, h: { ...p.h, color } } : p));
   }
@@ -148,6 +167,8 @@ export default function Highlighter({ rn, book, containerRef }) {
     setPopover(null);
   }
 
+  const editColor = toolbar && toolbar.editId ? (highlights.find((h) => h.id === toolbar.editId) || {}).color : null;
+
   const readingData = popover ? getReading(rn) : null;
   const related = readingData && popover ? findRelated(readingData, popover.h.text, 4) : [];
 
@@ -163,6 +184,7 @@ export default function Highlighter({ rn, book, containerRef }) {
               title={`Highlight — ${labels[c]}`}
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => pickColor(c)}
+              style={toolbar.editId && editColor === c ? { outline: "2px solid var(--text)", outlineOffset: "1px" } : undefined}
             />
           ))}
           <button

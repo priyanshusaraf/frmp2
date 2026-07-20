@@ -16,6 +16,7 @@ import {
   Calculator,
   BookA,
   Highlighter,
+  Bookmark,
   Timer,
 } from "lucide-react";
 import { META } from "../lib/meta.js";
@@ -33,6 +34,7 @@ const STUDY_ITEMS = [
   ["/progress", "Progress", BarChart3],
   ["/notes", "Notes", StickyNote],
   ["/highlights", "Highlights", Highlighter],
+  ["/bookmarks", "Bookmarks", Bookmark],
 ];
 
 function openPalette() {

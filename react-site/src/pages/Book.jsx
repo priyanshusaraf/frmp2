@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { CheckCircle2, FileText } from "lucide-react";
-import { META, rpath } from "../lib/meta.js";
+import { META, rpath, readingMeta, bookOf } from "../lib/meta.js";
 import Html from "../components/Html.jsx";
 import { slugify } from "../lib/html.js";
 import { useStore, toggleDone } from "../lib/store.js";
@@ -21,6 +21,7 @@ export default function Book() {
   const bnNum = Number(bn);
   const b = META.books.find((x) => x.n === bnNum);
   const done = useStore((s) => s.done);
+  const lastVisited = useStore((s) => s.lastVisited);
 
   useEffect(() => {
     if (b) document.title = "Book " + b.n + " — " + b.title;
@@ -30,6 +31,11 @@ export default function Book() {
 
   const doneCount = b.readings.filter((r) => done[r.n]).length;
   const pct = b.readings.length ? Math.round((doneCount / b.readings.length) * 100) : 0;
+  const resumeHere =
+    lastVisited && lastVisited.rn && bookOf(lastVisited.rn) && bookOf(lastVisited.rn).n === b.n
+      ? lastVisited
+      : null;
+  const resumeMeta = resumeHere ? readingMeta(resumeHere.rn) : null;
 
   return (
     <main className="page">
@@ -68,6 +74,21 @@ export default function Book() {
         Stars = exam priority. Pills show which earlier readings each one builds on — click a pill
         to jump straight there, or the checkmark to mark it done.
       </p>
+      {resumeHere && resumeMeta && (
+        <Link
+          to={rpath(resumeHere.rn)}
+          state={{ resume: true }}
+          className="card group flex items-center justify-between gap-3"
+          style={{ borderLeft: "3px solid " + b.color, textDecoration: "none", marginBottom: "0.9rem" }}
+        >
+          <div>
+            <div className="text-[0.72rem] font-mono uppercase tracking-wide text-faint mb-1">Continue studying</div>
+            <h3 className="mb-0.5">R{resumeHere.rn} · {resumeMeta.t}</h3>
+            {resumeHere.section ? <div className="text-[0.78rem] text-faint">Left off in “{resumeHere.section}”</div> : null}
+          </div>
+          <span className="text-faint" aria-hidden>→</span>
+        </Link>
+      )}
       {b.sessions.map((ss) => {
         const ssReadings = b.readings.filter((r) => r.n >= ss.from && r.n <= ss.to);
         const ssDone = ssReadings.filter((r) => done[r.n]).length;

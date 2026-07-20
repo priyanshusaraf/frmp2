@@ -11,7 +11,9 @@
                                                       // color: 'y'|'g'|'b'|'r'; text/prefix/suffix are
                                                       // whitespace-normalized anchors (see lib/highlights.js)
      hlLabels:   { y, g, b, r },                      // user-editable color legend
-     lastVisited:{ rn, ts },                          // most recently opened chapter
+     lastVisited:{ rn, ts, y, section },              // most recently opened chapter (+ scroll y, section label left off in)
+     bookmarks:  { [rn]: [ { id, txt, ts } ] },       // section bookmarks; id = slugify(section title)
+     layout: { pageWidth, keyPointsOpen, tocOpen },   // reading-column width (px) + rail open states
      mocks:  [ { ts, total, correct, perBook, minutes } ], // mock-exam history (newest first)
    }
    Older blobs may lack any of the newer keys — readers must treat them all as optional. */
@@ -132,11 +134,56 @@ export function setHlLabel(color, label) {
   save({ ...s, hlLabels: { ...(s.hlLabels || {}), [color]: label } });
 }
 
-/* ---- last visited chapter ---- */
-export function touchVisited(rn) {
+/* ---- last visited chapter (+ resume position) ----
+   Called on chapter open (no extra) and throttled on scroll (extra = {y, section}).
+   Writes only when something material changed, to avoid churning localStorage on scroll. */
+export function touchVisited(rn, extra) {
   const s = load();
-  if (s.lastVisited && s.lastVisited.rn === rn) return;
-  save({ ...s, lastVisited: { rn, ts: Date.now() } });
+  const prev = s.lastVisited || {};
+  const y = extra && typeof extra.y === "number" ? Math.max(0, Math.round(extra.y)) : prev.rn === rn ? prev.y : 0;
+  const section = extra && "section" in extra ? extra.section || "" : prev.rn === rn ? prev.section : "";
+  if (prev.rn === rn && prev.y === y && prev.section === section && !extra) return;
+  if (prev.rn === rn && prev.y === y && (prev.section || "") === (section || "")) return;
+  save({ ...s, lastVisited: { rn, ts: Date.now(), y: y || 0, section: section || "" } });
+}
+
+/* ---- section bookmarks ---- */
+export function toggleBookmark(rn, { id, txt }) {
+  if (!rn || !id) return;
+  const s = load();
+  const cur = (s.bookmarks && s.bookmarks[rn]) || [];
+  const exists = cur.some((b) => b.id === id);
+  const next = exists ? cur.filter((b) => b.id !== id) : [...cur, { id, txt: txt || id, ts: Date.now() }];
+  const bookmarks = { ...(s.bookmarks || {}) };
+  if (next.length) bookmarks[rn] = next; else delete bookmarks[rn];
+  save({ ...s, bookmarks });
+}
+export function isBookmarked(state, rn, id) {
+  const list = (state && state.bookmarks && state.bookmarks[rn]) || [];
+  return list.some((b) => b.id === id);
+}
+export function allBookmarks(state) {
+  const map = (state || load()).bookmarks || {};
+  const out = [];
+  for (const rn of Object.keys(map)) {
+    for (const b of map[rn] || []) out.push({ rn: Number(rn), id: b.id, txt: b.txt, ts: b.ts || 0 });
+  }
+  return out.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+}
+
+/* ---- layout preferences (reading width + rail open states) ---- */
+export function setPageWidth(px) {
+  const s = load();
+  const pageWidth = typeof px === "number" && px > 0 ? Math.round(px) : undefined;
+  save({ ...s, layout: { ...(s.layout || {}), pageWidth } });
+}
+export function setKeyPointsOpen(open) {
+  const s = load();
+  save({ ...s, layout: { ...(s.layout || {}), keyPointsOpen: !!open } });
+}
+export function setTocOpen(open) {
+  const s = load();
+  save({ ...s, layout: { ...(s.layout || {}), tocOpen: !!open } });
 }
 
 /* ---- study planner ---- */

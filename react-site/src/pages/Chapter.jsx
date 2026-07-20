@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useParams, Navigate, Link, useNavigate } from "react-router-dom";
+import { useParams, Navigate, Link, useNavigate, useLocation } from "react-router-dom";
 import { readingMeta, bookOf, rpath, bpath, META } from "../lib/meta.js";
 import { useReading } from "../lib/readings.js";
 import { renderMath, isTex, fitMath } from "../lib/tex.js";
@@ -16,7 +16,7 @@ import Highlighter from "../components/chapter/Highlighter.jsx";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "../components/ui/accordion.jsx";
 import Button from "../components/ui/button.jsx";
 import Badge from "../components/ui/badge.jsx";
-import { useStore, toggleDone, touchVisited } from "../lib/store.js";
+import { useStore, toggleDone, touchVisited, setPageWidth, getState } from "../lib/store.js";
 import KeyPoints from "../components/chapter/KeyPoints.jsx";
 
 /* flat reading order across all books, for prev/next nav */
@@ -26,23 +26,74 @@ export default function Chapter() {
   const { rn: rnParam } = useParams();
   const rn = parseInt(rnParam, 10);
   const rootRef = useRef(null);
+  const handleRef = useRef(null);
+  const resumeRef = useRef({ y: 0, scrollTo: null });
   const [openRecall, setOpenRecall] = useState({});
+  const [dragWidth, setDragWidth] = useState(null);
   const isDone = useStore((s) => !!s.done[rn]);
   const quizScore = useStore((s) => s.quiz[rn]);
+  const pageWidth = useStore((s) => (s.layout && s.layout.pageWidth) || null);
+  const appliedWidth = dragWidth ?? pageWidth;
 
   const meta = rn ? readingMeta(rn) : null;
   const book = rn ? bookOf(rn) : null;
   const d = useReading(meta ? rn : 0);
+  const location = useLocation();
 
   useEffect(() => {
     if (meta) document.title = "R" + rn + " — " + meta.t;
   }, [rn, meta]);
 
   useEffect(() => {
+    /* capture resume intent BEFORE touchVisited(rn) resets y for a freshly-opened reading */
+    const st = getState().lastVisited || {};
+    resumeRef.current = {
+      y: (location.state && location.state.resume && st.rn === rn) ? (st.y || 0) : 0,
+      scrollTo: (location.state && location.state.scrollTo) || null,
+    };
     setOpenRecall({});
-    window.scrollTo(0, 0);
     if (rn) touchVisited(rn);
   }, [rn]);
+
+  function onResizeDown(e) {
+    /* Capture the DOM node + pointerId into locals NOW: React nulls out
+       e.currentTarget after this handler returns, so the async onMove/onUp
+       closures must never read e.currentTarget (doing so threw in onUp before
+       the move listener was removed → the drag never released). Listen on
+       window so a fast drag that leaves the 14px handle still tracks/ends. */
+    e.preventDefault();
+    const el = e.currentTarget;
+    const pointerId = e.pointerId;
+    const startX = e.clientX;
+    const startW = rootRef.current.getBoundingClientRect().width;
+    let lastW = startW;
+    try { el.setPointerCapture(pointerId); } catch { /* capture unsupported — window listeners still work */ }
+    el.classList.add("dragging");
+
+    function onMove(ev) {
+      let w = startW + 2 * (ev.clientX - startX);
+      w = Math.max(720, Math.min(window.innerWidth - 32, w));
+      lastW = w;
+      setDragWidth(w);
+    }
+    function end() {
+      el.classList.remove("dragging");
+      try { el.releasePointerCapture(pointerId); } catch { /* no-op */ }
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", end);
+      window.removeEventListener("pointercancel", end);
+      setPageWidth(lastW);
+      setDragWidth(null);
+    }
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", end);
+    window.addEventListener("pointercancel", end);
+  }
+
+  function onResizeReset() {
+    setPageWidth(null);
+    setDragWidth(null);
+  }
 
   /* [ / ] keyboard nav between readings (skipped while typing) */
   const navigate = useNavigate();
@@ -59,11 +110,69 @@ export default function Chapter() {
     return () => window.removeEventListener("keydown", onKey);
   }, [rn, navigate]);
 
+  /* section list for the sticky TOC — must mirror the conditions in the JSX below exactly.
+     Computed with d-optional guards (not a hook) so it's stable to include as an effect dep
+     whether or not the reading chunk has finished loading yet. */
+  const sections = [];
+  const pushSec = (txt) => { sections.push({ id: slugify(txt), txt }); return txt; };
+  if (d) {
+    if (d.teaches) pushSec("What this chapter teaches");
+    if (d.why) pushSec("Why it matters");
+    if (d.intuition) pushSec("Core intuition");
+    if (d.eli5) pushSec("Explain it simply");
+    if (d.thinkLike) pushSec("Think like a risk manager");
+    if (d.visual) pushSec("See it");
+    if (d.breakdown && d.breakdown.length) pushSec("At a glance — the lists that matter");
+    if (d.formulas && d.formulas.length) pushSec("Formula box");
+    if (d.concepts && d.concepts.length) pushSec("Concept hierarchy — click to expand");
+    if (d.connections) pushSec("Connections");
+    if (d.misconceptions && d.misconceptions.length) pushSec("Common misconceptions & exam traps");
+    if (d.highYield && d.highYield.length) pushSec("High yield — what to prioritize");
+    if (d.quiz && d.quiz.length) pushSec("Test yourself");
+    if (d.recall && d.recall.length) pushSec("Active recall — answer before revealing");
+    if (d.hooks && d.hooks.length) pushSec("Memory hooks");
+    if (d.sources && d.sources.length) pushSec("Go deeper — external reading");
+    if (d.summary) pushSec("One-page summary");
+  }
+
   useEffect(() => {
     if (!rootRef.current || !d) return;
     initWidgets(rootRef.current);
     fitMath(rootRef.current);
+    requestAnimationFrame(() => {
+      const r = resumeRef.current;
+      if (r.scrollTo) {
+        const el = document.getElementById(r.scrollTo);
+        if (el) el.scrollIntoView({ behavior: "auto", block: "start" });
+        else window.scrollTo(0, 0);
+      } else if (r.y > 0) {
+        window.scrollTo(0, r.y);
+      } else {
+        window.scrollTo(0, 0);
+      }
+      resumeRef.current = { y: 0, scrollTo: null }; // consume once
+    });
   }, [rn, d]);
+
+  /* throttled scroll-position save, so reopening this reading later can resume exactly here */
+  useEffect(() => {
+    if (!d) return;
+    let last = 0;
+    function onScroll() {
+      const now = Date.now();
+      if (now - last < 500) return;
+      last = now;
+      const y = window.scrollY;
+      let sec = "";
+      for (const s of sections) {
+        const el = document.getElementById(s.id);
+        if (el && el.getBoundingClientRect().top <= 120) sec = s.txt; else break;
+      }
+      touchVisited(rn, { y, section: sec });
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [rn, d, sections]);
 
   if (!rn || !meta) return <Navigate to="/" replace />;
 
@@ -81,27 +190,6 @@ export default function Chapter() {
     );
   }
 
-  /* section list for the sticky TOC — must mirror the conditions below exactly */
-  const sections = [];
-  const pushSec = (txt) => { sections.push({ id: slugify(txt), txt }); return txt; };
-  if (d.teaches) pushSec("What this chapter teaches");
-  if (d.why) pushSec("Why it matters");
-  if (d.intuition) pushSec("Core intuition");
-  if (d.eli5) pushSec("Explain it simply");
-  if (d.thinkLike) pushSec("Think like a risk manager");
-  if (d.visual) pushSec("See it");
-  if (d.breakdown && d.breakdown.length) pushSec("At a glance — the lists that matter");
-  if (d.formulas && d.formulas.length) pushSec("Formula box");
-  if (d.concepts && d.concepts.length) pushSec("Concept hierarchy — click to expand");
-  if (d.connections) pushSec("Connections");
-  if (d.misconceptions && d.misconceptions.length) pushSec("Common misconceptions & exam traps");
-  if (d.highYield && d.highYield.length) pushSec("High yield — what to prioritize");
-  if (d.quiz && d.quiz.length) pushSec("Test yourself");
-  if (d.recall && d.recall.length) pushSec("Active recall — answer before revealing");
-  if (d.hooks && d.hooks.length) pushSec("Memory hooks");
-  if (d.sources && d.sources.length) pushSec("Go deeper — external reading");
-  if (d.summary) pushSec("One-page summary");
-
   const idx = FLAT.indexOf(rn);
   const prevRn = idx > 0 ? FLAT[idx - 1] : null;
   const nextRn = idx >= 0 && idx < FLAT.length - 1 ? FLAT[idx + 1] : null;
@@ -111,7 +199,14 @@ export default function Chapter() {
   }
 
   return (
-    <main className="page" ref={rootRef}>
+    <main className="page" ref={rootRef} style={appliedWidth ? { maxWidth: appliedWidth } : undefined}>
+      <div
+        className="page-resize"
+        ref={handleRef}
+        onPointerDown={onResizeDown}
+        onDoubleClick={onResizeReset}
+        title="Drag to resize · double-click to reset"
+      />
       <div className="crumbs">
         <Link to="/">Home</Link> / <Link to={bpath(book.n)}>Book {book.n} · {book.short}</Link> / Reading {rn}
       </div>
@@ -139,31 +234,31 @@ export default function Chapter() {
       </div>
 
       {d.teaches && (<>
-        <SectionLabel txt="What this chapter teaches" color={book.color} />
+        <SectionLabel txt="What this chapter teaches" color={book.color} rn={rn} />
         <div className="prose"><Html html={d.teaches} /></div>
       </>)}
       {d.why && (<>
-        <SectionLabel txt="Why it matters" color={book.color} />
+        <SectionLabel txt="Why it matters" color={book.color} rn={rn} />
         <div className="prose"><Html html={d.why} /></div>
       </>)}
       {d.intuition && (<>
-        <SectionLabel txt="Core intuition" color={book.color} />
+        <SectionLabel txt="Core intuition" color={book.color} rn={rn} />
         <div className="prose"><Html html={d.intuition} /></div>
       </>)}
       {d.eli5 && (<>
-        <SectionLabel txt="Explain it simply" color="var(--green)" />
+        <SectionLabel txt="Explain it simply" color="var(--green)" rn={rn} />
         <div className="card accent"><Html html={d.eli5} /></div>
       </>)}
       {d.thinkLike && (<>
-        <SectionLabel txt="Think like a risk manager" color={book.color} />
+        <SectionLabel txt="Think like a risk manager" color={book.color} rn={rn} />
         <div className="prose"><Html html={d.thinkLike} /></div>
       </>)}
       {d.visual && (<>
-        <SectionLabel txt="See it" color={book.color} />
+        <SectionLabel txt="See it" color={book.color} rn={rn} />
         <div className="prose" dangerouslySetInnerHTML={{ __html: d.visual }} />
       </>)}
       {d.breakdown && d.breakdown.length > 0 && (<>
-        <SectionLabel txt="At a glance — the lists that matter" color={book.color} />
+        <SectionLabel txt="At a glance — the lists that matter" color={book.color} rn={rn} />
         <div className="grid2">
           {d.breakdown.map((b, i) => (
             <div className="card" key={i}>
@@ -179,7 +274,7 @@ export default function Chapter() {
       </>)}
 
       {d.formulas && d.formulas.length > 0 && (<>
-        <SectionLabel txt="Formula box" color={book.color} />
+        <SectionLabel txt="Formula box" color={book.color} rn={rn} />
         {d.formulas.map((f, i) => {
           const mathCls = "f-math" + (isTex(f.math) ? " f-tex" : "");
           return (
@@ -204,12 +299,12 @@ export default function Chapter() {
       </>)}
 
       {d.concepts && d.concepts.length > 0 && (<>
-        <SectionLabel txt="Concept hierarchy — click to expand" color={book.color} />
+        <SectionLabel txt="Concept hierarchy — click to expand" color={book.color} rn={rn} />
         {d.concepts.map((c, i) => <ConceptCard key={i} c={c} open={i === 0} />)}
       </>)}
 
       {d.connections && (<>
-        <SectionLabel txt="Connections" color={book.color} />
+        <SectionLabel txt="Connections" color={book.color} rn={rn} />
         <div className="grid2">
           <ConnList title="Where this came from" arr={d.connections.from} />
           <ConnList title="Where you'll use it next" arr={d.connections.to} />
@@ -226,7 +321,7 @@ export default function Chapter() {
       </>)}
 
       {d.misconceptions && d.misconceptions.length > 0 && (<>
-        <SectionLabel txt="Common misconceptions & exam traps" color="var(--red)" />
+        <SectionLabel txt="Common misconceptions & exam traps" color="var(--red)" rn={rn} />
         {d.misconceptions.map((m, i) => (
           <div className="misc-row" key={i}>
             <div className="wrong"><span className="tag">Looks true / trap</span><Html as="span" html={m.wrong} /></div>
@@ -236,7 +331,7 @@ export default function Chapter() {
       </>)}
 
       {d.highYield && d.highYield.length > 0 && (<>
-        <SectionLabel txt="High yield — what to prioritize" color="var(--amber)" />
+        <SectionLabel txt="High yield — what to prioritize" color="var(--amber)" rn={rn} />
         {d.highYield.map((y, i) => {
           const tier = y.stars >= 5 ? " hy-5" : y.stars >= 4 ? " hy-4" : "";
           return (
@@ -252,12 +347,12 @@ export default function Chapter() {
       </>)}
 
       {d.quiz && d.quiz.length > 0 && (<>
-        <SectionLabel txt="Test yourself" color={book.color} />
+        <SectionLabel txt="Test yourself" color={book.color} rn={rn} />
         <Quiz rn={rn} quiz={d.quiz} />
       </>)}
 
       {d.recall && d.recall.length > 0 && (<>
-        <SectionLabel txt="Active recall — answer before revealing" color="var(--purple)" />
+        <SectionLabel txt="Active recall — answer before revealing" color="var(--purple)" rn={rn} />
         {d.recall.map((q, i) => (
           <div className={"recall-card" + (openRecall[i] ? " open" : "")} key={i}>
             <div
@@ -274,7 +369,7 @@ export default function Chapter() {
       </>)}
 
       {d.hooks && d.hooks.length > 0 && (<>
-        <SectionLabel txt="Memory hooks" color="var(--pink)" />
+        <SectionLabel txt="Memory hooks" color="var(--pink)" rn={rn} />
         <div className="grid2">
           {d.hooks.map((k, i) => (
             <div className="card" key={i}>
@@ -286,7 +381,7 @@ export default function Chapter() {
       </>)}
 
       {d.sources && d.sources.length > 0 && (<>
-        <SectionLabel txt="Go deeper — external reading" color={book.color} />
+        <SectionLabel txt="Go deeper — external reading" color={book.color} rn={rn} />
         <div className="grid2">
           {d.sources.map((s, i) => (
             <a className="card" key={i} href={s.url} target="_blank" rel="noopener noreferrer"
@@ -299,7 +394,7 @@ export default function Chapter() {
       </>)}
 
       {d.summary && (<>
-        <SectionLabel txt="One-page summary" color={book.color} />
+        <SectionLabel txt="One-page summary" color={book.color} rn={rn} />
         <div className="card accent"><Html html={d.summary} /></div>
       </>)}
 
@@ -318,7 +413,7 @@ export default function Chapter() {
         ) : <span style={{ flex: 1 }} />}
       </div>
 
-      <ChapterTOC sections={sections} />
+      <ChapterTOC sections={sections} rn={rn} />
       <KeyPoints items={d.highYield} color={book.color} />
       <Highlighter rn={rn} book={book.n} containerRef={rootRef} />
     </main>
