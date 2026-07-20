@@ -19,7 +19,8 @@ export default ({
       intuition: "Each risk answers a different question about what could go wrong when someone else does the work: is the vendor breaking rules (compliance)? are you dangerously reliant on too few vendors (concentration)? will the vendor's mistakes make customers blame you (reputation)? is the vendor's home country itself a risk (country)? will the vendor's internal breakdowns cost you money directly (operational)? will you get sued because of what the vendor did (legal)?",
       example: "Bank Inc. (based in the United States) hires Service Co. (based in France) to manage a large volume of confidential customer data. A computer glitch at Service Co. causes an accidental public disclosure of that data. Bank faces: compliance risk (data-privacy rules were breached), country risk (Service Co. operates under French law and is subject to French economic/political conditions), legal risk (affected customers or regulators may sue or fine Bank), and operational risk (the loss itself, from the control breakdown at the vendor). Concentration risk is not directly triggered by this single incident — it would only apply if Bank relied on very few vendors or vendors clustered in one region for this function.",
       pitfall: "Compliance risk specifically means the SERVICE PROVIDER failing to comply with laws/regulations relevant to the outsourced activity — it is not simply \"any regulatory risk.\" Don't confuse it with legal risk (lawsuits/costs from the provider's negligent acts) or operational risk (losses from the provider's internal control breaches and human error).",
-      related: [{ r: 51, label: "R51 — these risks manifesting concretely in real cases" }]
+      related: [{ r: 51, label: "R51 — these risks manifesting concretely in real cases" }],
+      memory: "Rules, reliance, reputation, region, running the operation, rulings: compliance, concentration, reputational, country, operational, legal."
     },
     {
       name: "Compliance risk",
@@ -61,7 +62,8 @@ export default ({
       def: "Risk assessments, due diligence in selecting providers, contract provisions, incentive compensation review, oversight/monitoring, business continuity/contingency plans.",
       intuition: "Read as a timeline: risk assessment and due diligence happen BEFORE you sign a contract (should you outsource this at all, and if so, to which vendor?); contract provisions happen AT the moment of signing (converting every identified risk into an enforceable clause); incentive review, oversight/monitoring, and continuity planning happen AFTER signing, for the life of the relationship.",
       example: "A bank considering outsourcing its call-center operations first performs a risk assessment (is this activity better done in-house or externally, given the bank's objectives?) and a cost-benefit/risk analysis of candidate vendors, asking two key questions: do qualified and experienced service providers actually exist for this activity, and is the bank itself sufficiently qualified to oversee the relationship once it exists? Only after answering both \"yes\" does it move to due diligence on a specific vendor, then contract negotiation, then ongoing monitoring.",
-      related: ["Due diligence — three review areas"]
+      related: ["Due diligence — three review areas"],
+      memory: "Before signing: assess, then diligence. At signing: contract. After signing: incentive review, monitor, and keep a continuity plan on the shelf."
     },
     {
       name: "Due diligence — three review areas",
@@ -176,6 +178,80 @@ export default ({
       ]
     }
   ],
+
+  lists: [
+    {
+      id: "six-risks",
+      title: "Six risks from outsourcing",
+      axis: "Each risk answers a different question about what could go wrong when someone else does the work, moving from rule-breaking to over-reliance to public perception to jurisdiction to internal breakdown to lawsuits.",
+      items: [
+        "Compliance risk: provider breaks relevant laws/regulations.",
+        "Concentration risk: too few providers, or providers clustered in one region.",
+        "Reputational risk: substandard provider work reflects badly on the institution.",
+        "Country risk: provider is based abroad, exposing economic/political risk.",
+        "Operational risk: losses from the provider's own control breaches and human error.",
+        "Legal risk: lawsuits and costs from the provider's negligent activities."
+      ]
+    },
+    {
+      id: "six-part-program",
+      title: "Six-part outsourcing risk management program",
+      axis: "The program runs on a timeline: the first two elements happen before you sign a contract, the last four are ongoing obligations for the life of the relationship.",
+      items: [
+        "Risk assessments: should this activity be outsourced at all, and can the institution oversee it?",
+        "Due diligence in selecting service providers: vet the specific candidate vendor.",
+        "Contract provisions: convert every identified risk into an enforceable clause.",
+        "Incentive compensation review: check the provider's pay structure aligns with customer/institution interests.",
+        "Oversight and monitoring of service providers: ongoing tracking of performance and financial health.",
+        "Business continuity and contingency plans: keep services running if the provider suffers a major disruption."
+      ]
+    },
+    {
+      id: "due-diligence-areas",
+      title: "Due diligence, three review areas",
+      axis: "The three areas map to three failure modes: is this vendor trustworthy, can it survive financially, and do its day-to-day systems actually protect your data.",
+      items: [
+        "Business background, reputation, and strategy.",
+        "Financial performance and condition.",
+        "Operations and internal controls."
+      ]
+    },
+    {
+      id: "contract-provisions",
+      title: "Contract provisions (the long, testable list)",
+      axis: "Every clause is the contractual answer to a specific upstream risk: read the list as the risks named earlier in the reading, one by one turned into an enforceable obligation.",
+      items: [
+        "Scope.",
+        "Cost and compensation.",
+        "Incentive compensation.",
+        "Right to audit.",
+        "Establishment and monitoring of performance standards.",
+        "Oversight and monitoring.",
+        "Confidentiality and security of information.",
+        "Ownership and license.",
+        "Indemnification.",
+        "Default and termination.",
+        "Dispute resolution.",
+        "Limits on liability.",
+        "Insurance.",
+        "Customer complaints.",
+        "Provider's own business resumption/contingency plan.",
+        "Foreign-based provider considerations.",
+        "Subcontracting."
+      ]
+    }
+  ],
+
+  pairs: [
+    { left: "Compliance risk", right: "Provider fails to follow the laws/regulations that govern the outsourced activity." },
+    { left: "Concentration risk", right: "Too few providers to choose from, or providers clustered in one region." },
+    { left: "Country risk", right: "Provider is based abroad, exposing the institution to that country's economic/political risk." },
+    { left: "Right to audit clause", right: "Lets the institution inspect the provider or receive reports like a SOC 2 or FFIEC TSP exam report." },
+    { left: "Subcontracting clause", right: "Primary provider stays fully responsible for any subcontractor's work, and must document subcontractor due diligence." },
+    { left: "Foreign-based provider clause", right: "Names a single governing jurisdiction, usually the institution's own, to avoid conflicting foreign law." }
+  ],
+
+  topicTags: ["op-risk", "governance"],
 
   quiz: [
     {

@@ -173,6 +173,70 @@ export default ({
     }
   ],
 
+  lists: [
+    {
+      id: "orm-cycle",
+      title: "Four-step ORM risk-management cycle",
+      axis: "The cycle is sequential and self-correcting: each step feeds the next, and a monitoring failure loops the process back to identification rather than ending it.",
+      items: [
+        "Identify: find relevant risks using group brainstorming and staff interviews",
+        "Assess: determine probability and severity using stress testing and scenario analysis",
+        "Mitigate: reduce or eliminate high-priority risks via controls, insurance, or exposure reduction",
+        "Monitor: verify the process works via incident reports and key risk indicators"
+      ]
+    },
+    {
+      id: "basel-event-types",
+      title: "Seven Basel II event-type categories",
+      axis: "The order follows Basel's own Type 1 through Type 7 numbering, the fixed reference sequence used industry-wide so loss events are classified and reported consistently from firm to firm.",
+      items: [
+        "Internal fraud (IF): employee defalcation, rogue trading; low frequency, low severity",
+        "External fraud (EF): credit card fraud, hacking losses; high frequency, low severity",
+        "Employment practices & workplace safety (EPWS): termination disputes, discrimination claims; moderate frequency, low severity",
+        "Clients, products & business practices (CPBP): misselling, fiduciary breaches, regulatory fines; high frequency, very high severity, about 52% of aggregate severity",
+        "Damage to physical assets (DPA): natural disasters, negligence; low frequency, low severity",
+        "Business disruption & system failures (BDSF): IT failures, utility outages; low frequency, low severity",
+        "Execution, delivery & process management (EDPM): clerical errors, insufficient documentation; high frequency, high severity, about 27% of aggregate severity"
+      ]
+    },
+    {
+      id: "resilience-elements",
+      title: "Five elements of operational resilience",
+      axis: "The elements move from broad goal to specific mechanics to continuous improvement: name the aim, narrow to what matters most, quantify how much disruption is tolerable, execute the response, then close the loop by learning from it.",
+      items: [
+        "Business continuity: minimizing disruption to business processes",
+        "Key (important) services: identifying and protecting the most critical services",
+        "Impact tolerance levels: the acceptable disruption or recovery time for a key service",
+        "Disruption processes: how the firm responds, retains confidence, and communicates during disruption",
+        "Feedback: learning from past incidents to improve future handling"
+      ]
+    },
+    {
+      id: "bcbs-resilience-principles",
+      title: "BCBS's seven principles of operational resilience (2021)",
+      axis: "The principles move from foundational governance down to the concrete operational capabilities that make resilience real: framework first, then mapping, vendors, incidents, and technology.",
+      items: [
+        "Governance: resilience managed within the firm's existing risk-management governance",
+        "Operational risk management: resilience builds on the standard ORM framework",
+        "Business continuity planning and testing: continuity plans must exist and be tested",
+        "Mapping interconnections and interdependencies: know how processes, systems, and third parties connect",
+        "Third-party dependency management: control risk from outsourced and vendor relationships",
+        "Incident management: an established process to respond to and recover from incidents",
+        "Information and communications technology (ICT), including cybersecurity: IT systems built to maximize resiliency"
+      ]
+    }
+  ],
+
+  pairs: [
+    { left: "BCBS (Basel Committee on Banking Supervision)", right: "Defines operational risk and issued the seven principles of operational resilience in 2021." },
+    { left: "UK FCA, PRA, and Bank of England (2018)", right: "Joint resilience rules initially focused on IT-service continuity after cyber incidents." },
+    { left: "US Federal Reserve (2020)", right: "Guidance concluding an effective ORM framework should produce operational resilience as its overall result." },
+    { left: "European Central Bank / DORA (2020, proposed)", right: "Harmonized IT-related resilience requirements across EU financial institutions." },
+    { left: "MAS and ABS, Singapore (2021)", right: "Guidance on resilience specifically in remote-work settings, covering operations, IT, fraud, legal, and regulatory risk." }
+  ],
+
+  topicTags: ["op-risk", "basel", "cyber", "governance"],
+
   quiz: [
     {
       q: "Per the Basel Committee's definition, operational risk is the risk of loss resulting from all of the following EXCEPT:",

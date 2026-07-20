@@ -31,7 +31,8 @@ export default ({
       intuition: "TPRM doesn't stop where your contract stops. It applies to the entire supply chain: fourth parties are third parties of your third parties, and fifth parties are contractors dealing with the entities your fourth parties deal with. Your visibility and control both shrink with each additional link, even though your accountability does not.",
       example: "A bank contracts a payroll vendor (third party). That payroll vendor outsources its data-hosting to a cloud provider (fourth party from the bank's perspective). If that cloud provider uses a specialized subcontractor for physical data-center security (fifth party), the bank likely has zero direct contractual relationship with — or visibility into — that fifth party, yet a breach originating there is still, per this reading's core lesson, the bank's problem.",
       pitfall: "Visibility into sub-outsourcing relationships is exactly the third-party cyber risk dimension named in R47 — the concern isn't hypothetical, it's a recurring named risk category. Firms should build limits on outsourcing to fourth parties and secure audit rights over vendors as part of continuous monitoring, precisely because visibility does not happen automatically.",
-      related: [{ r: 47, label: "R47 — visibility into sub-outsourcing named as a third-party cyber risk dimension" }]
+      related: [{ r: 47, label: "R47 — visibility into sub-outsourcing named as a third-party cyber risk dimension" }],
+      memory: "Visibility shrinks one notch at every party: third you can see, fourth you can barely see, fifth you usually can't see at all. Accountability does not shrink with it."
     },
     {
       name: "The shared lesson: accountability cannot be outsourced",
@@ -82,7 +83,7 @@ export default ({
 
   eli5: `<p>Imagine you hire a moving company to pack and ship your grandmother's china to your new house. The moving company subcontracts the actual truck driving to a freight partner, and that freight partner uses a warehouse run by yet another company for overnight storage. If the china arrives shattered because the warehouse forklift driver was careless, you don't get to shrug and say "not my problem, blame the warehouse guy." You hired the moving company; the moving company is who you paid, and it's who you'll go after — and if the moving company's reputation with you depends on your china arriving whole, it's on the hook regardless of how many subcontractors were actually holding the box when it broke. That's exactly the logic behind TPRM: a bank can outsource cloud hosting (like Capital One did with AWS) or hardware disposal (like Morgan Stanley did), but when something breaks three layers down the subcontracting chain, the regulator and the public still hold the bank — not the vendor's vendor's vendor — accountable.</p>`,
 
-  thinkLike: `<p>A risk manager reviewing a third-party relationship asks a version of the same question at every stage of the lifecycle: "if this vendor — or their vendor, or their vendor's vendor — fails, who absorbs the loss, and would I have seen it coming?" That means treating due diligence proportionally (a one-day training consultant does not need the scrutiny a cloud-hosting provider handling customer PII needs), insisting on audit rights and subcontracting-visibility clauses in contracts rather than assuming a vendor's own controls are sufficient, and defining monitoring triggers in advance — data breaches, regulatory changes, M&A, even "acts of God" — rather than waiting for the annual calendar review to catch a problem that's been live for months.</p>
+  thinkLike: `<p>A risk manager reviewing a third-party relationship asks a version of the same question at every stage of the lifecycle: "if this vendor, or their vendor, or their vendor's vendor, fails, who absorbs the loss, and would I have seen it coming?" That means treating due diligence proportionally (a one-day training consultant does not need the scrutiny a cloud-hosting provider handling customer PII needs), insisting on audit rights and subcontracting-visibility clauses in contracts rather than assuming a vendor's own controls are sufficient, and defining monitoring triggers in advance: data breaches, regulatory changes, M&A, even "acts of God", rather than waiting for the annual calendar review to catch a problem that's been live for months.</p>
   <p>On the exam, GARP tests this reading two ways. First, sequencing/matching questions: given a TPRM activity (e.g., "establishing limits on fourth-party outsourcing"), identify which of the five lifecycle stages it belongs to (answer: contracts, SLAs, and contract management — because limits get formalized as contractual terms, not evaluated as a separate step). Second, case-study fact questions that test whether you internalized the "accountability cannot be outsourced" conclusion and can attach the right details (regulator = OCC, fine amounts = $80M Capital One / $60M Morgan Stanley, failure type = cloud data breach vs. hardware decommissioning) to the right bank rather than mixing them up.</p>`,
 
   breakdown: [
@@ -114,6 +115,32 @@ export default ({
       ]
     }
   ],
+
+  lists: [
+    {
+      id: "tprm-lifecycle",
+      title: "TPRM lifecycle, five stages",
+      axis: "Read it as a relationship's full life: decide whether to outsource, vet the specific partner, formalize the deal in writing, keep watching after signing, and eventually wind it down on your own terms.",
+      items: [
+        "Business model decision: decide whether an activity should even be outsourced.",
+        "Evaluation, risk rating, and due diligence: vet the specific candidate proportionally to the relationship's complexity and length.",
+        "Contracts, SLAs, and contract management: formalize responsibilities in writing, resolve open issues before signing, review periodically after.",
+        "Ongoing monitoring: reassess on a calendar schedule and on defined triggers such as breaches, regulatory change, M&A, and acts of God.",
+        "Remediation or termination: grievance period, clean exit clause, and a process for transferring intellectual property back in-house."
+      ]
+    }
+  ],
+
+  pairs: [
+    { left: "Third party", right: "The vendor the bank directly contracted with; the bank can audit it and knows its name." },
+    { left: "Fourth party", right: "A subcontractor the bank's own vendor hired; the bank likely never negotiated with it directly." },
+    { left: "Fifth party", right: "A contractor working for the bank's vendor's subcontractor, one layer further removed still." },
+    { left: "OCC", right: "The regulator that fined both Capital One ($80M) and Morgan Stanley ($60M) in 2020." },
+    { left: "Capital One failure", right: "A former AWS employee exploited a firewall weakness and stole unencrypted customer data." },
+    { left: "Morgan Stanley failure", right: "Improper decommissioning of data servers, weak subcontractor oversight, poor data inventory." }
+  ],
+
+  topicTags: ["op-risk", "governance", "cyber"],
 
   quiz: [
     {

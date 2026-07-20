@@ -62,6 +62,31 @@ export default ({
     }
   ],
 
+  lists: [
+    {
+      id: "scenario-workshop-phases",
+      title: "Scenario workshop process, in order",
+      axis: "Selection has nothing to work with until generation has produced a raw list of candidate scenarios, so the two phases have to run in this sequence.",
+      items: [
+        "Generation: brainstorm past and potential future losses with upper management across business units, using silent voting so one dominant voice does not skew the results",
+        "Selection: combine scenarios that share an effect but differ in cause, drop immaterial scenarios, and retain or add scenarios with material financial impact",
+        "Cross check against ORX or ORIC published scenarios, done only after the bank's own generation process to avoid anchoring on someone else's list"
+      ]
+    },
+    {
+      id: "basel-taxonomy-levels",
+      title: "Basel operational risk taxonomy, broad to specific",
+      axis: "Each level narrows the one above it, from a mandatory reporting category down to a concrete real-world instance, so the order tracks decreasing generality, not importance.",
+      items: [
+        "Level 1: 7 broad event categories (internal fraud, external fraud, EPWS, CPBP, DPA, BDSF, EDPM), mandatory for regulatory reporting",
+        "Level 2: 20 specific subcategories nested under the 7 Level-1 categories, also mandatory for regulatory reporting",
+        "Level 3: concrete real-world examples nested under each Level-2 subcategory"
+      ]
+    }
+  ],
+
+  topicTags: ["op-risk", "governance", "basel"],
+
   concepts: [
     {
       name: "Top-down vs. bottom-up identification",
@@ -148,7 +173,7 @@ export default ({
 
   hooks: [
     { title: "Satellite view vs. ground view", text: "Top-down: fly high, see the whole landscape, spot emerging threats on the horizon. Bottom-up: walk the factory floor, see the crack in this specific pipe. Neither view alone tells the whole story." },
-    { title: "Graduation day for cyber and model risk", text: "ORX's taxonomy is basically a graduation ceremony: cyber risk and model risk, once buried as sub-items, get promoted to their own Level-1 category — a promotion that foreshadows their own dedicated readings later in the book." },
+    { title: "Graduation day for cyber and model risk", text: "Ask yourself: which risks outgrew their old home? ORX's taxonomy answers that question by promoting six risks, cyber and model risk among them, out of buried Level-2 sub-items into their own Level-1 category, because their scale and distinctiveness no longer fit inside a broader bucket. That promotion foreshadows why cyber and model risk each earn a dedicated reading later in the book." },
     { title: "The $30 billion late-night funding scramble", text: "A funding system crashes before markets close; by the time it's back, money markets are shut. The bank has to scrounge $30 billion from counterparties at a premium rate — a single BDSF event, purely from timing, not fraud or negligence." }
   ],
 

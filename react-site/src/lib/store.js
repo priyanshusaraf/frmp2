@@ -5,7 +5,8 @@
      done:   { [rn]: true },                          // reading marked complete
      quiz:   { [rn]: { best, last, when } },          // percent scores
      notes:  [ { id, rn, section, quote, text, ts, kind } ], // kind: "note" (default) | "error"
-     srs:    { [cardId]: { ease, ivl, due, reps } },  // SM-2-lite per recall card
+     srs:    { [cardId]: { ease, ivl, due, reps } },  // SM-2-lite, cardId is id-agnostic:
+                                                      // "rn:i" recall, "rn:hy:i" highYield, "rn:list:id" lists (Review.jsx)
      planner:{ examDate },                            // "YYYY-MM-DD" or absent
      highlights: { [rn]: [ { id, color, text, prefix, suffix, section, ts } ] },
                                                       // color: 'y'|'g'|'b'|'r'; text/prefix/suffix are

@@ -13,6 +13,8 @@ import ChapterTOC from "../components/chapter/ChapterTOC.jsx";
 import Quiz from "../components/chapter/Quiz.jsx";
 import MiniMap from "../components/chapter/MiniMap.jsx";
 import Highlighter from "../components/chapter/Highlighter.jsx";
+import ListBuilder from "../components/chapter/ListBuilder.jsx";
+import MatchPairs from "../components/chapter/MatchPairs.jsx";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "../components/ui/accordion.jsx";
 import Button from "../components/ui/button.jsx";
 import Badge from "../components/ui/badge.jsx";
@@ -88,6 +90,8 @@ export default function Chapter() {
     if (d.thinkLike) pushSec("Think like a risk manager");
     if (d.visual) pushSec("See it");
     if (d.breakdown && d.breakdown.length) pushSec("At a glance — the lists that matter");
+    if (d.lists && d.lists.length) pushSec("Build the list — memorize the order");
+    if (d.pairs && d.pairs.length) pushSec("Match names to scope");
     if (d.formulas && d.formulas.length) pushSec("Formula box");
     if (d.concepts && d.concepts.length) pushSec("Concept hierarchy — click to expand");
     if (d.connections) pushSec("Connections");
@@ -235,6 +239,16 @@ export default function Chapter() {
             </Resizable>
           ))}
         </div>
+      </>)}
+
+      {d.lists && d.lists.length > 0 && (<>
+        <SectionLabel txt="Build the list — memorize the order" color={book.color} rn={rn} />
+        <ListBuilder lists={d.lists} color={book.color} />
+      </>)}
+
+      {d.pairs && d.pairs.length > 0 && (<>
+        <SectionLabel txt="Match names to scope" color={book.color} rn={rn} />
+        <MatchPairs pairs={d.pairs} color={book.color} />
       </>)}
 
       {d.formulas && d.formulas.length > 0 && (<>

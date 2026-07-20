@@ -168,6 +168,61 @@ export default ({
     }
   ],
 
+  lists: [
+    {
+      id: "basel-pillars",
+      title: "Basel II's three pillars, applied to operational risk",
+      axis: "The pillars move from most formulaic to most judgment-based to most public: Pillar 1 is a calculated capital number, Pillar 2 layers on supervisory judgment for what the formula misses, and Pillar 3 hands the remaining check to the market via disclosure.",
+      items: [
+        "Pillar 1, regulatory capital: minimum capital for unexpected op-risk losses, liquidity coverage ratios, and the 12 Principles for Sound Management of Operational Risk",
+        "Pillar 2, supervisory review: extra capital for risks Pillar 1 misses, plus voluntary disclosure and self-assessment reviewed by regulators",
+        "Pillar 3, market discipline: mandatory quarterly and annual financial and risk disclosures"
+      ]
+    },
+    {
+      id: "committee-structure",
+      title: "Risk committee structure: bottom to top",
+      axis: "Authority and scope widen as issues escalate upward, from narrow business-line committees to the board committee that owns final risk decisions.",
+      items: [
+        "Lowest: small committees per business activity or country, feeding data upward and escalating crucial issues",
+        "Middle: the organization risk committee aggregates firm-wide operational risk and reports to the executive and board risk committees",
+        "Top: the board (enterprise) risk committee oversees both lower levels and gives recommendations to the full board"
+      ]
+    },
+    {
+      id: "three-lines-of-defense",
+      title: "Three lines of defense",
+      axis: "Independence from day-to-day risk-taking increases at each line: Line 1 owns the risk, Line 2 watches with zero hands-on involvement, and Line 3 independently audits whether both prior lines are doing their jobs.",
+      items: [
+        "Line 1, front line / business unit (plus informal 'Line 1.5' risk champions): generates, measures, and manages its own risk; escalates weaknesses to Line 2",
+        "Line 2, corporate operational risk function (CORF): sets ORM policy and independently reviews Line 1's work, with zero hands-on involvement to avoid a self-review threat",
+        "Line 3, internal audit: independently reviews both Lines 1 and 2, keeps its own separate list of significant risks, typically reports to a nonexecutive board director"
+      ]
+    },
+    {
+      id: "pillar1-capital-steps",
+      title: "Pillar 1 capital calculation steps (standardized approach)",
+      axis: "The steps must run in this order because each quantity is built from the one before it: BI feeds BIC, BIC feeds the ILM ratio, and both feed the final capital number.",
+      items: [
+        "Step 1, Business Indicator: BI = ILDC + SC + FC, using higher-of pairs and absolute values so netting cannot shrink the measure",
+        "Step 2, Business Indicator Component: BIC = BI × a percentage that rises with size (12%, 15%, or 18%)",
+        "Step 3, Internal Loss Multiplier: ILM = ln(e minus 1 plus LC/BIC), where LC = 15 × the bank's own 10-year average annual operational losses",
+        "Step 4, Operational Risk Capital: ORC = ILM × BIC"
+      ]
+    }
+  ],
+
+  pairs: [
+    { left: "Line 1 (front line / business unit)", right: "Owns, generates, and manages its own risk day to day; escalates weaknesses to Line 2." },
+    { left: "Line 2 (Corporate Operational Risk Function, CORF)", right: "Sets ORM policy and independently reviews Line 1's work, with zero hands-on involvement to avoid a self-review threat." },
+    { left: "Line 3 (Internal Audit)", right: "Independently reviews both Lines 1 and 2 and keeps its own separate list of the bank's significant risks." },
+    { left: "Board (enterprise) risk committee", right: "Approves the ORMF; ultimately accountable for operational risk and resilience." },
+    { left: "Organization risk committee", right: "Aggregates firm-wide operational risk and reports it to the executive and board risk committees." },
+    { left: "Chief Risk Officer (CRO)", right: "Executes risk management duties delegated by the board; not ultimately responsible for operational risk." }
+  ],
+
+  topicTags: ["governance", "op-risk", "capital", "basel"],
+
   quiz: [
     {
       q: "Under the three lines of defense model, why must Line 2 have zero involvement in Line 1's actual risk-taking work?",

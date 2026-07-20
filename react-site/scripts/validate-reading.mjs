@@ -184,6 +184,28 @@ for (const [i, h] of (d.highYield || []).entries()) {
   if (!h.what || !h.why) fail(`highYield[${i}] missing what/why`);
 }
 
+/* ---------- optional memorization-schema fields (2026-07-21) ---------- */
+
+if ("lists" in d) {
+  if (!Array.isArray(d.lists) || !d.lists.length) fail("lists present but empty — omit the key instead");
+  else for (const [i, l] of d.lists.entries()) {
+    if (!l.id || !l.title || !l.axis) fail(`lists[${i}] missing id/title/axis`);
+    if (!Array.isArray(l.items) || l.items.length < 3) fail(`lists[${i}] (${l.id || "?"}) needs >=3 items in correct order`);
+  }
+}
+
+if ("pairs" in d) {
+  if (!Array.isArray(d.pairs) || !d.pairs.length) fail("pairs present but empty — omit the key instead");
+  else for (const [i, p] of d.pairs.entries()) {
+    if (!p.left || !p.right) fail(`pairs[${i}] missing left/right`);
+  }
+}
+
+if ("topicTags" in d) {
+  if (!Array.isArray(d.topicTags) || !d.topicTags.length) fail("topicTags present but empty — omit the key instead");
+  else for (const t of d.topicTags) if (typeof t !== "string" || !t.trim()) fail("topicTags entries must be non-empty strings");
+}
+
 report();
 
 function report() {

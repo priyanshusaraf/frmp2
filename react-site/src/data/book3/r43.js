@@ -51,6 +51,56 @@ export default ({
     }
   ],
 
+  lists: [
+    {
+      id: "resilience-seven-steps",
+      title: "Operational resilience process, in order",
+      axis: "Each step depends on the output of the one before it: you cannot set a tolerance before you know which services matter, cannot test a scenario before you know what resources deliver the service, and cannot remediate before a test has actually breached a tolerance.",
+      items: [
+        "Determine important business services (IBSs)",
+        "Establish impact tolerances for each IBS",
+        "Map IBSs and the resources needed to deliver them",
+        "Design harsh-but-realistic scenarios to test vulnerabilities",
+        "Review lessons learned and remediate if tolerances are breached",
+        "Ensure communication plans are ready to execute",
+        "Perform an annual board-approved self-assessment"
+      ]
+    },
+    {
+      id: "fair-model-steps",
+      title: "FAIR model, in order",
+      axis: "The sequence mirrors the logic of any quantification exercise: you must name the risk factors before you can measure them, and measure them before you can combine those measurements into a result.",
+      items: [
+        "Determine risk factors and how they interrelate",
+        "Measure each factor as a distribution, not a single point estimate",
+        "Computationally combine the factors, usually via Monte Carlo simulation, into a loss distribution"
+      ]
+    },
+    {
+      id: "orm-framework-circles",
+      title: "ORM framework, from data to governance",
+      axis: "The circles move outward from raw evidence to acted-upon insight: data has to exist before it can be assessed, assessment has to happen before it can be monitored over time, and monitoring has to surface a signal before it can feed lessons back into governance.",
+      items: [
+        "Incident and loss database: the raw record of what actually happened",
+        "Assessment through RCSAs: structured judgment about inherent and residual risk levels",
+        "Monitoring through KRIs: ongoing tracking of whether exposure is rising or falling",
+        "Takeaways from major loss events or high-risk exposures, feeding lessons learned back into governance and controls"
+      ]
+    }
+  ],
+
+  pairs: [
+    { left: "RCSA (risk and control self-assessment)", right: "Rates both inherent and residual risk through qualitative business-unit judgment, typically once a year." },
+    { left: "RCA (risk and control assessment)", right: "Documents tests of controls and compares actual losses against industry peers." },
+    { left: "RRSA (residual risk self-assessment)", right: "Skips inherent risk and rates only the risk that remains after controls are applied." },
+    { left: "FAIR model", right: "Breaks a risk into named factors, measures each as a distribution, and combines them by Monte Carlo simulation." },
+    { left: "Loss distribution approach (LDA)", right: "Models frequency and severity separately, then convolutes them into an aggregate loss distribution capped at the 99.9th percentile for capital." },
+    { left: "Bow tie diagram", right: "Lays causes and preventive controls on the left of a risk event, impacts and detective/corrective controls on the right." },
+    { left: "Swiss cheese model", right: "Treats each control as a slice with drifting holes, explaining why supposedly independent layers still fail together." }
+  ],
+
+  topicTags: ["op-risk", "capital", "basel", "stress-testing"],
+
   concepts: [
     {
       name: "Operational loss data — regulatory requirements",
@@ -166,7 +216,7 @@ export default ({
   hooks: [
     { title: "Two questions, one number", text: "LDA asks 'how often' (frequency) and 'how bad' (severity) as two SEPARATE questions, then mashes the answers together (convolution) into one aggregate distribution — and the 99.9th percentile of THAT becomes your capital number." },
     { title: "Swiss cheese, not fault tree, for realism", text: "Fault tree analysis pretends the cheese slices' holes are randomly placed (independent). Swiss cheese model admits the holes might actually LINE UP (correlated) — a more honest picture of how failures cascade." },
-    { title: "The narrow slice of resilience", text: "BCM is the whole pie (all business processes). Resilience is one slice — important business services, within tolerance. Breach the tolerance, and you've fallen off resilience's plate entirely." },
+    { title: "The narrow slice of resilience", text: "Ask: is this process protected by broad disaster recovery planning, or by a specific promise about how much disruption customers can tolerate? BCM answers the first question for every business process; resilience answers the second, but only for the curated list of important business services and only within their impact tolerances. Breach the tolerance and you have stepped outside resilience's scope entirely, back into BCM's broader territory." },
     { title: "A bow tie has two sides for a reason", text: "Left side = what causes it and what prevents it (frequency levers). Right side = what it costs and what limits the damage (severity levers). The risk event is the knot in the middle." }
   ],
 
