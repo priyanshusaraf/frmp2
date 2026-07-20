@@ -59,6 +59,18 @@ The teaching doctrine, in order of priority:
    struggle, a simpler, slower explanation is correct; simpler ≠ oversimplified — never drop
    the exam-relevant nuance, just build the intuition before stating it.
 
+**Exemplar worth rereading before any intuition/eli5 pass: R28's tranche-correlation
+explanation** (user-flagged as the best writing in the app, 2026-07-21). Two moves worth
+copying: (1) it opens with a *known, simpler* system before the real one — a fair-coin-flip
+analogy for zero correlation, then perturbs it ("now raise the correlation... it's more like
+flipping 1,000 coins that are all wired to tend to land the same way") rather than presenting
+the correlated case cold; (2) the `eli5` reframes the entire tranche waterfall as apartment
+rent tickets (Gold/Silver/Bronze paid in a fixed pecking order) and resolves the SAME
+correlation mechanism through that frame, so a reader who only has the ELI5 still reaches the
+real conclusion (senior hurt by correlation, equity helped by it) without needing the formal
+version at all. Both explanations independently earn the punchline instead of just asserting
+it — that's the bar.
+
 ### Prose style — HARD RULES (apply to every user-facing content field)
 
 - **NO EM-DASHES OR EN-DASHES ANYWHERE** (`—`, `–`). They read as AI-generated and the product
@@ -304,3 +316,95 @@ content yet. **Phase 2** — piecewise `terms[]` breakdown + first authored `dee
 piloted on Vasicek WCDR only. **Phase 3** — the inline hover-snippet linking pass across all
 readings that reference an established core concept (the expensive phase; do as a dedicated
 fleet run, one agent per file, following section 5's rules).
+
+## 7. Roadmap: further ideas scoped 2026-07-21 (NOT YET BUILT — spec only)
+
+Four more requests from the same session, deliberately scoped here instead of built, so a
+future session with more usage budget can implement them without re-deriving requirements.
+**When the user says something like "check CLAUDE.md for what's left and implement it,"
+this section (and section 6) is what they mean.** Treat each as its own scoped project —
+brainstorm/confirm specifics with the user before building, the way section 6 was handled,
+since these are still spec-level, not fully nailed down.
+
+### 7.1 Foundational-concept revision system
+
+The problem, in the user's words: for FRM Part II specifically (as opposed to Part I / CFA
+Level I), readings constantly assume prerequisite concepts the student learned earlier and
+may have quietly forgotten — the user's own example was forgetting that equity is the lowest
+tranche in the capital structure while reading R28's correlation material, which depends on
+already knowing the tranche waterfall. This is a *different* problem from section 6's
+core-concept system: section 6 is about a reused ADVANCED model resurfacing (Vasicek WCDR);
+this is about a basic/foundational prerequisite silently assumed and never re-taught. Needs
+its own design pass before building — open questions to resolve with the user: how are
+"foundational prerequisite" facts identified (a new lightweight tag on `concepts[]`/
+`connections.from`? auto-derived from `connections.from` external-prereq entries that already
+exist in the schema?); what the revision surface looks like (a dedicated page, an inline
+just-in-time reminder when a reading's `connections.from` references a prerequisite the
+student hasn't visited/marked done, both?); whether it plugs into the existing SRS engine
+(section 2.1 of the memorization spec) as another card source, which seems like the natural
+fit given the infrastructure already exists.
+
+### 7.2 Settings page
+
+New `/settings` page (lazy route, Study-menu + command-palette entry, same pattern as every
+other secondary page). **Build now, when this gets picked up: font size only** — a `layout`
+store key (e.g. `layout.fontScale`, multiplier applied as a CSS custom property on `<html>`
+or `main.page`, following the existing `--text`/`--text-dim` CSS-variable convention so it
+doesn't fight the type scale doctrine in section 3). Everything else the user mentioned (font
+family, background color/theme granularity beyond the existing dark/light toggle) is
+explicitly deferred — "not that important," in the user's words — so don't build those until
+asked again, even though the settings page shell should probably be laid out to accommodate
+them later (a simple list of labeled controls, not a one-off single-field page that has to be
+restructured when more settings arrive).
+
+### 7.3 Paid-access device licensing (auth + device binding)
+
+For when this app is distributed for money. Full rule set as specified by the user
+2026-07-21 (do not simplify or reinterpret without re-confirming — these numbers were
+deliberate):
+
+- Account requires a user ID + password, **plus additional device-binding signal** beyond
+  credentials alone (exact mechanism TBD at design time — e.g. a server-issued device token
+  stored per device — since credentials alone can't enforce device limits).
+- Each account gets **exactly one "computer" slot and one "phone" slot** as primary devices —
+  both may be used concurrently, no restriction between them.
+- If the account is used from a device that isn't one of the two current primary devices:
+  that new device gets a **4-hour access window**, after which it's locked out, and **cannot
+  attempt access again for 2 days** — UNLESS the user promotes it to replace a primary device
+  during that window (see next rule).
+- **Primary device reassignment (swapping which computer/phone is "the" primary) is allowed
+  at most once per 7 days.** This is the actual anti-sharing mechanism: someone who wants to
+  hand the account to a friend can technically do it, but only by burning their one
+  reassignment per week and giving up their own access in the process — not something a
+  legitimate single user would ever hit accidentally.
+- If a legitimate user needs off-primary-device access outside these rules (e.g. traveling,
+  borrowed device, lost phone), the intended path is a **support enquiry to us**, not a
+  product-side self-service override — i.e. this is a deliberately strict default with a
+  human escape hatch, not a fully automated flow.
+
+This needs backend infrastructure this repo does not currently have (there is no
+server/auth/payments layer yet — see PROGRESS.md's "Deferred / later" list, which already
+flagged "any backend/auth/payments" as out of scope for the current local-storage-only
+architecture). Scoping this now is explicitly about **capturing the exact business rule**
+before it's forgotten, not about being close to buildable — implementing it is a distinct,
+large project (needs a backend, a database, session/device-token management, and a support
+workflow) that should get its own brainstorm-through-plan cycle whenever the product is
+ready to charge for access.
+
+### 7.4 Split-view source material alongside a reading
+
+Let the student open source material (the full Schweser book, `Book N (1).md`/PDF) and/or
+the condensed companion PDF (`FRM2_*_CompleteBookN.md`/PDF, Books 1-4 only) in a side pane
+next to the reading, instead of navigating away to `/pdf/:bn`. Requested combinations: source
+alone on one side, condensed alone, or both open at once (one per side) while the reading (or
+nothing) occupies the remaining space. This is a natural extension of the existing
+`PdfView.jsx` (already lazy-loads pdfjs, already used by the "Open source PDF ↗" button and
+the `/pdf/:bn` route) rather than a new subsystem: the design should reuse `PdfView` as a
+mountable pane in a resizable split layout (likely following the `useEdgeResize.js` drag
+pattern already used for the reading-width resizer and the per-list `Resizable.jsx`
+component), with a `layout` store key for which pane(s) are open and at what split ratio.
+Open questions for the design pass: whether split view is available on mobile at all (screen
+width makes a true side-by-side unrealistic below some breakpoint — probably desktop-only,
+falling back to the existing full-screen `/pdf/:bn` on narrow viewports) and whether the
+condensed-companion PDF needs its own query-jump support like `d.pdf.query` already provides
+for the full source.

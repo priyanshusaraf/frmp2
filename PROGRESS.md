@@ -12,6 +12,13 @@ session dies or limits run out. Scope of all work: **`react-site/` only** — th
 > hover/deep-dive system (Vasicek WCDR etc.) into `react-site/CLAUDE.md` section 6. That
 > roadmap is spec-only; next session should brainstorm→plan→build it as its own scoped
 > project, starting with Phase 1 (see CLAUDE.md section 6), NOT resume mid-build.
+> Also fixed this session: the tranche widget's overlapping axis labels (r28) and a drill
+> design flaw where ListBuilder items authored with a canonical numbered name up front
+> ("Tier 1:") handed the ordering answer away for free. Four more ideas from this session are
+> scoped (not built) in `react-site/CLAUDE.md` section 7: foundational-concept revision,
+> a settings page (font size first), paid-access device licensing, and split-view source
+> material alongside a reading. **If the user says "check CLAUDE.md for what's left," read
+> sections 6 and 7 — that's the full backlog.**
 > **Known debt, not blocking:** the em-dash/prose-tone cleanup is still incomplete across
 > several Book 3 readings (r40-r43, r50-r51 fail the validator's dash budget; pre-existing,
 > confirmed not introduced this session) — a future tone-pass should sweep book3 fully.
